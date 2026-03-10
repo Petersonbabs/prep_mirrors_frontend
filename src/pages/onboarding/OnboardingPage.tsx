@@ -165,13 +165,12 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const handleSkip = async () => {
     const finalProfile: UserProfile = {
       name: nameInput || 'Friend',
-      targetRole: selectedRole || 'Software Engineer',
-      level: selectedLevel || 'junior',
+      targetRole: selectedRole || '',
+      level: selectedLevel || '',
       goal: selectedChallenge || 'confidence',
-      hiring_timeline: selectedTimeline || "a month",
+      hiring_timeline: selectedTimeline || "",
       pre_first_interview_confidence: preConfidenceScore as number,
       post_first_interview_confidence: postConfidenceScore as number,
-
     };
     await syncProfileToSupabase(finalProfile);
     onComplete();

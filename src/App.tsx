@@ -54,6 +54,8 @@ const SIDEBAR_PATHS = [
 // Supabase client is imported from ./lib/supabase
 
 import { useAuth } from './lib/hooks/useAuth';
+import PrivacyPolicyPage from './pages/(public)/privacy';
+import TermsOfServicePage from './pages/(public)/terms';
 
 export function App() {
   const { user, profile: userProfile, isLoading, refreshProfile } = useAuth();
@@ -187,7 +189,7 @@ export function App() {
           <Route
             path="/onboarding"
             element={
-              (!isLoading && !user) ? <Navigate to="/signin" replace /> :
+              (!isLoading && !user) ? <Navigate to="/auth" replace /> :
                 <OnboardingPage
                   onComplete={handleOnboardingComplete}
                   onBack={() => navigate('/auth')} />
@@ -269,6 +271,11 @@ export function App() {
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/account" element={<AccountPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+
+          <Route path="/terms" element={<TermsOfServicePage />} />
+
           <Route path="/admin" element={<AdminPage />} />
           {/* Catch-all → home */}
           <Route path="*" element={<Navigate to="/" replace />} />

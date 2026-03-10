@@ -38,7 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const user = session?.user ?? null;
 
     const fetchProfile = useCallback(async (userId: string) => {
-        console.log('AuthProvider: Fetching profile for', userId);
         try {
             const { data, error } = await supabase
                 .from('profiles')
@@ -97,18 +96,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const initialize = async () => {
             try {
-                // 1. Get current session immediately (very fast, usually local)
                 const { data: { session: initialSession } } = await supabase.auth.getSession();
 
                 if (!mounted) return;
                 setSession(initialSession);
-
-                // 2. Clear loading as soon as we know IF we have a user.
-                // This allows the app to render the protected routes or signin page immediately.
                 setIsLoading(false);
-                console.log('AuthProvider: Initial session check done, loading cleared.');
 
-                // 3. Fetch profile in the background if we have a user
                 if (initialSession?.user) {
                     fetchProfile(initialSession.user.id);
                 }
@@ -122,19 +115,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
             if (!mounted) return;
-            console.log('AuthProvider: Auth event:', event);
-
             setSession(currentSession);
 
             if (currentSession?.user) {
-                // If it's a sign-in or token refresh, we update the profile.
-                // We don't wait for it here to prevent blocking the UI.
                 fetchProfile(currentSession.user.id);
             } else {
                 setProfile(null);
             }
-
-            // Fail-safe: always ensure loading is off after an auth event
             setIsLoading(false);
         });
 

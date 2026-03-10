@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { ArrowLeftIcon, ArrowRightIcon, MailIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { Provider } from '@supabase/supabase-js';
+
 interface AuthPageProps {
   onContinue: () => void;
   onBack: () => void;
@@ -203,6 +206,21 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
     if (!email.includes('@')) return;
     setView('otp');
   };
+
+  const handleContinueWithGoogle = async (provider: Provider) => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/onboarding`
+        }
+      })
+
+      if (error) throw error
+    } catch (error) {
+      console.log(error)
+    }
+  }
   return (
     <div className="min-h-screen w-full bg-white dark:bg-neutral-900 flex flex-col items-center justify-center px-6 py-12">
       {view === 'otp' ?
@@ -242,7 +260,9 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
           <div className="space-y-3">
             {/* Google */}
             <button
-              onClick={onContinue}
+              onClick={()=>{
+                handleContinueWithGoogle("google")
+              }}
               className="w-full flex items-center gap-4 px-5 py-4 bg-white dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-2xl hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-sm transition-all group">
 
               <div className="w-5 h-5 flex-shrink-0">
