@@ -7,7 +7,6 @@ import {
   LogOutIcon,
   ChevronRightIcon,
   CheckCircleIcon,
-  ExternalLinkIcon,
   ClockIcon,
   Loader2
 } from 'lucide-react';
