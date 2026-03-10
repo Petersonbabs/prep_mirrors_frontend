@@ -1204,7 +1204,7 @@ export function HomePage({ onGetStarted, onSignIn }: HomePageProps) {
       </section>
 
       {/* Footer */}
-      <Footer />
+      {/* <Footer /> */}
     </div>);
 
 }
