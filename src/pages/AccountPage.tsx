@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../lib/hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+
 // Replace with your real Paystack public key from https://dashboard.paystack.com
 const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxx';
 type ActiveSection = 'profile' | 'billing' | 'security' | 'notifications';
