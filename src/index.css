@@ -1,0 +1,233 @@
+/* @import url() FONT IMPORTS MUST ALWAYS BE AT THE VERY TOP OF THIS FILE, ABOVE THE TAILWIND IMPORTS — DO NOT DELETE THIS COMMENT */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED OR REORDERED — DO NOT DELETE THIS COMMENT */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #F1F5F9;
+  --bg-card: #ffffff;
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+  --shadow-color: rgba(15, 23, 42, 0.08);
+}
+.dark {
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-card: #1E293B;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --border-color: #334155;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 0;
+  padding: 0;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+/* Typing cursor animation */
+.typing-cursor::after {
+  content: '|';
+  animation: typingCursor 1s step-end infinite;
+  color: #6366F1;
+  font-weight: 300;
+}
+/* Voice wave bars */
+.voice-bar {
+  width: 4px;
+  border-radius: 2px;
+  background: #6366F1;
+  animation: wave 1.5s ease-in-out infinite;
+}
+.voice-bar:nth-child(1) { animation-delay: 0s; height: 16px; }
+.voice-bar:nth-child(2) { animation-delay: 0.1s; height: 24px; }
+.voice-bar:nth-child(3) { animation-delay: 0.2s; height: 32px; }
+.voice-bar:nth-child(4) { animation-delay: 0.3s; height: 24px; }
+.voice-bar:nth-child(5) { animation-delay: 0.4s; height: 16px; }
+/* Progress bar animation */
+.progress-fill {
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* Streak flame animation */
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(-2deg); }
+  25% { transform: scale(1.05) rotate(2deg); }
+  50% { transform: scale(0.98) rotate(-1deg); }
+  75% { transform: scale(1.02) rotate(1deg); }
+}
+.streak-flame {
+  animation: flicker 2s ease-in-out infinite;
+  display: inline-block;
+}
+/* Card hover lift */
+.card-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px -4px rgba(99, 102, 241, 0.2);
+}
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #A78BFA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+/* Onboarding option card */
+.option-card {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.option-card:hover {
+  border-color: #6366F1;
+  background-color: #EEF2FF;
+}
+.dark .option-card:hover {
+  background-color: rgba(99, 102, 241, 0.15);
+}
+.option-card.selected {
+  border-color: #6366F1;
+  background-color: #EEF2FF;
+}
+.dark .option-card.selected {
+  background-color: rgba(99, 102, 241, 0.2);
+}
+/* Chat bubble animation */
+@keyframes chatAppear {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chat-bubble {
+  animation: chatAppear 0.3s ease-out;
+}
+/* Confetti-like celebration */
+@keyframes confettiFall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
+}
+.confetti-dot {
+  animation: confettiFall 1.5s ease-out forwards;
+}
+/* Get Plus Badge Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(15deg);
+  }
+  100% {
+    transform: translateX(200%) rotate(15deg);
+  }
+}
+@keyframes badge-glow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.4), 0 0 24px rgba(251, 191, 36, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.6), 0 0 40px rgba(251, 191, 36, 0.3);
+  }
+}
+.shimmer-badge {
+  position: relative;
+  overflow: hidden;
+  animation: badge-glow 2s ease-in-out infinite;
+}
+.shimmer-badge::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+.dark .shimmer-badge::before {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+}
+/* Walkthrough overlay animations */
+@keyframes walkthrough-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes walkthrough-scale-in {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95) translateY(10px);
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0);
+  }
+}
+.walkthrough-overlay {
+  animation: walkthrough-fade-in 0.3s ease-out;
+}
+.walkthrough-card {
+  animation: walkthrough-scale-in 0.4s ease-out;
+}
+/* Skeleton Shimmer Animation */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, 
+    var(--bg-secondary) 25%, 
+    var(--border-color) 50%, 
+    var(--bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 0.75rem;
+}
+.dark .skeleton {
+  background: linear-gradient(90deg, 
+    #1E293B 25%, 
+    #334155 50%, 
+    #1E293B 75%);
+  background-size: 200% 100%;
+}
