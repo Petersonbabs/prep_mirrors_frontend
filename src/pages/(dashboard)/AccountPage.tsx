@@ -10,8 +10,8 @@ import {
   ClockIcon,
   Loader2
 } from 'lucide-react';
-import { useAuth } from '../lib/hooks/useAuth';
-import { supabase } from '../lib/supabase';
+import { useAuth } from '../../lib/hooks/useAuth';
+import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 // Replace with your real Paystack public key from https://dashboard.paystack.com

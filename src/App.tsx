@@ -9,19 +9,12 @@ import {
   'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
-import { HomePage } from './pages/HomePage';
 import { OnboardingPage } from './pages/onboarding/OnboardingPage';
 import { AuthPage } from './pages/AuthPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { InterviewScriptPage } from './pages/InterviewScriptPage';
-import { InterviewSessionPage } from './pages/InterviewSessionPage';
-import { FeedbackPage } from './pages/FeedbackPage';
-import { CoachPage } from './pages/CoachPage';
 import { AdminPage } from './pages/AdminPage';
-import { ProgressPage } from './pages/ProgressPage';
 import { PricingPage } from './pages/PricingPage';
-import { AccountPage } from './pages/AccountPage';
-import { SettingsPage } from './pages/SettingsPage';
+import { AccountPage } from './pages/(dashboard)/AccountPage';
+import { SettingsPage } from './pages/(dashboard)/SettingsPage';
 import Signin from './pages/Signin';
 
 export type Theme = 'light' | 'dark' | 'system';
@@ -42,35 +35,27 @@ const HIDDEN_NAVBAR_PATHS = ['/onboarding', '/auth', '/admin'];
 // Pages that show the sidebar (logged-in dashboard area)
 const SIDEBAR_PATHS = [
   '/dashboard',
-  '/interview/script',
-  '/interview/session',
-  '/feedback',
-  '/coach',
-  '/progress',
-  '/account',
+  '/dashboard/interview-script',
+  '/dashboard/interview-session',
+  '/dashboard/feedback',
+  '/dashboard/coach',
+  '/dashboard/progress',
+  '/dashboard/account',
   '/pricing',
-  '/settings'];
+  '/dashboard/settings'];
 
 // Supabase client is imported from ./lib/supabase
 
 import { useAuth } from './lib/hooks/useAuth';
-import PrivacyPolicyPage from './pages/(public)/privacy';
-import TermsOfServicePage from './pages/(public)/terms';
+import PublicLayout from './components/provider/PublicLayout';
+import DashboardLayout from './components/provider/DashboardLayout';
 
 export function App() {
   const { user, profile: userProfile, isLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [theme, setTheme] = useState<Theme>('system');
-  const [selectedInterview, setSelectedInterview] =
-    useState<InterviewData | null>(null);
-  const [currentPhase, setCurrentPhase] = useState<'technical' | 'behavioral'>(
-    'technical'
-  );
-  const [feedbackData, setFeedbackData] = useState<{
-    question: string;
-    answer: string;
-  } | null>(null);
+
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   // Apply theme to html element
   useEffect(() => {
@@ -110,35 +95,7 @@ export function App() {
     setShowWalkthrough(true);
     navigate('/dashboard');
   };
-  const handleWalkthroughComplete = () => {
-    setShowWalkthrough(false);
-  };
-  const handleStartInterview = (interview: InterviewData) => {
-    setSelectedInterview(interview);
-    setCurrentPhase('technical');
-    navigate('/interview/script');
-  };
-  const handleScriptComplete = () => {
-    navigate('/interview/session');
-  };
-  const handleSessionComplete = (data: {
-    question: string;
-    answer: string;
-  }) => {
-    setFeedbackData(data);
-    navigate('/feedback');
-  };
-  const handleImproveWithCoach = () => {
-    navigate('/coach');
-  };
-  const handleNextPhase = () => {
-    if (currentPhase === 'technical') {
-      setCurrentPhase('behavioral');
-      navigate('/interview/script');
-    } else {
-      navigate('/dashboard');
-    }
-  };
+
   const showNavbar = !HIDDEN_NAVBAR_PATHS.includes(location.pathname);
   const showSidebar = !!userProfile && SIDEBAR_PATHS.includes(location.pathname);
   return (
@@ -162,12 +119,15 @@ export function App() {
 
         <Routes>
           <Route
-            path="/"
+            path="/*"
             element={
-              <HomePage
-                onGetStarted={() => navigate('/auth')}
-                onSignIn={() => navigate('/dashboard')} />
+              <PublicLayout />
+            } />
 
+          <Route
+            path="/dashboard/*"
+            element={
+              <DashboardLayout />
             } />
 
           <Route
@@ -195,86 +155,10 @@ export function App() {
                   onBack={() => navigate('/auth')} />
             } />
 
-          <Route
-            path="/dashboard"
-            element={
-              (!isLoading && !user) ? <Navigate to="/signin" replace /> :
-                <DashboardPage
-                  onStartInterview={handleStartInterview}
-                  onNavigate={(page) => navigate(`/${page}`)}
-                  showWalkthrough={showWalkthrough}
-                  onWalkthroughComplete={handleWalkthroughComplete} />
-            } />
 
-          <Route
-            path="/interview/script"
-            element={
-              selectedInterview ?
-                <InterviewScriptPage
-                  interview={selectedInterview}
-                  phase={currentPhase}
-                  onContinue={handleScriptComplete}
-                  onBack={() => navigate('/dashboard')} /> :
-
-
-                <Navigate to="/dashboard" replace />
-
-            } />
-
-          <Route
-            path="/interview/session"
-            element={
-              selectedInterview ?
-                <InterviewSessionPage
-                  interview={selectedInterview}
-                  phase={currentPhase}
-                  onComplete={handleSessionComplete}
-                  onBack={() => navigate('/interview/script')} /> :
-
-
-                <Navigate to="/dashboard" replace />
-
-            } />
-
-          <Route
-            path="/feedback"
-            element={
-              feedbackData && selectedInterview ?
-                <FeedbackPage
-                  interview={selectedInterview}
-                  phase={currentPhase}
-                  feedbackData={feedbackData}
-                  onImprove={handleImproveWithCoach}
-                  onNextPhase={handleNextPhase}
-                  onDashboard={() => navigate('/dashboard')} /> :
-
-
-                <Navigate to="/dashboard" replace />
-
-            } />
-
-          <Route
-            path="/coach"
-            element={
-              feedbackData ?
-                <CoachPage
-                  feedbackData={feedbackData}
-                  onBack={() => navigate('/feedback')}
-                  onDashboard={() => navigate('/dashboard')} /> :
-
-
-                <Navigate to="/dashboard" replace />
-
-            } />
-
-          <Route path="/progress" element={<ProgressPage />} />
           <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/account" element={<AccountPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
 
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
-          <Route path="/terms" element={<TermsOfServicePage />} />
 
           <Route path="/admin" element={<AdminPage />} />
           {/* Catch-all → home */}

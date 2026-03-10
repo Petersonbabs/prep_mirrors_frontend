@@ -1,5 +1,6 @@
 import React from 'react'
 import { UnderDevelopmentComponent } from '../../utils/utils'
+import { Link } from 'react-router-dom'
 
 const Footer = () => {
     return (
@@ -68,29 +69,31 @@ const Footer = () => {
                                 </li>
                             </ul>
                         </div>
-                        <div>
-                            <h4 className="font-display font-semibold text-white mb-3 text-sm">
-                                Support
-                            </h4>
-                            <ul className="space-y-2 text-sm">
-                                <li>
-                                    <a href="#" className="hover:text-white transition-colors">
-                                        Help Center
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="hover:text-white transition-colors">
-                                        Privacy Policy
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="hover:text-white transition-colors">
-                                        Terms of Service
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
                     </UnderDevelopmentComponent>
+                    <div>
+                        <h4 className="font-display font-semibold text-white mb-3 text-sm">
+                            Support
+                        </h4>
+                        <ul className="space-y-2 text-sm">
+                            <UnderDevelopmentComponent>
+                                <li>
+                                    <Link to="/help-center" className="hover:text-white transition-colors">
+                                        Help Center
+                                    </Link>
+                                </li>
+                            </UnderDevelopmentComponent>
+                            <li>
+                                <Link to="/privacy" className="hover:text-white transition-colors">
+                                    Privacy Policy
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/terms-of-service" className="hover:text-white transition-colors">
+                                    Terms of Service
+                                </Link>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
                 <div className="border-t border-neutral-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <p className="text-sm">© 2026 PrepMirrors. All rights reserved.</p>

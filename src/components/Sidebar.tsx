@@ -28,7 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'progress',
     label: 'Progress',
-    path: '/progress',
+    path: '/dashboard/progress',
     icon: <TrendingUpIcon className="w-4 h-4" />
   },
   {
@@ -40,13 +40,13 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'account',
     label: 'Account',
-    path: '/account',
+    path: 'dashboard/account',
     icon: <UserIcon className="w-4 h-4" />
   },
   {
     id: 'settings',
     label: 'Settings',
-    path: '/settings',
+    path: '/dashboard/settings',
     icon: <SettingsIcon className="w-4 h-4" />
   }];
 
@@ -100,7 +100,7 @@ export function Sidebar({ }: SidebarProps) {
       {userProfile &&
         <div className="px-3 py-4 border-t border-neutral-100 dark:border-neutral-700">
           <button
-            onClick={() => navigate('/account')}
+            onClick={() => navigate('dashboard/account')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
 
             <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">

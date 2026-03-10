@@ -9,9 +9,9 @@ import {
   ZapIcon,
   Loader2
 } from 'lucide-react';
-import { DashboardWalkthrough } from '../components/DashboardWalkthrough';
-import { useAuth } from '../lib/hooks/useAuth';
-import { InterviewData, Page } from '../App';
+import { DashboardWalkthrough } from '../../components/DashboardWalkthrough';
+import { useAuth } from '../../lib/hooks/useAuth';
+import { InterviewData, Page } from '../../App';
 
 interface DashboardPageProps {
   onStartInterview: (interview: InterviewData) => void;

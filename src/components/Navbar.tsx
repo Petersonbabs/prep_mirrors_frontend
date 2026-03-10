@@ -90,8 +90,8 @@ export function Navbar({
                     Dashboard
                   </button>
                   <button
-                    onClick={() => navigate('/progress')}
-                    className={`px-4 py-2 text-sm font-medium transition-colors rounded-lg ${location.pathname === '/progress' ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20' : 'text-neutral-600 dark:text-neutral-300 hover:text-primary-600 dark:hover:text-primary-400'}`}>
+                    onClick={() => navigate('/dashboard/progress')}
+                    className={`px-4 py-2 text-sm font-medium transition-colors rounded-lg ${location.pathname === '/dashboard/progress' ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20' : 'text-neutral-600 dark:text-neutral-300 hover:text-primary-600 dark:hover:text-primary-400'}`}>
 
                     Progress
                   </button>
@@ -165,7 +165,7 @@ export function Navbar({
               <div className="flex items-center gap-2">
                 <NotificationDropdown />
                 <button
-                  onClick={() => navigate('/account')}
+                  onClick={() => navigate('dashboard/account')}
                   className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
 
                   <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold">
@@ -262,7 +262,7 @@ export function Navbar({
                 Dashboard
               </button>
               <button
-                onClick={() => navigate('/progress')}
+                onClick={() => navigate('/dashboard/progress')}
                 className="block w-full text-left px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl">
 
                 Progress
@@ -274,13 +274,13 @@ export function Navbar({
                 Pricing
               </button>
               <button
-                onClick={() => navigate('/account')}
+                onClick={() => navigate('dashboard/account')}
                 className="block w-full text-left px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl">
 
                 Account
               </button>
               <button
-                onClick={() => navigate('/settings')}
+                onClick={() => navigate('/dashboard/settings')}
                 className="block w-full text-left px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl">
 
                 Settings
