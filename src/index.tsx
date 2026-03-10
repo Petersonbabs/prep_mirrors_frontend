@@ -3,6 +3,7 @@ import { render } from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { AuthProvider } from './lib/store/authStore';
+import { HelmetProvider } from 'react-helmet-async';
 // Lordicon custom element TypeScript declaration
 declare global {
   namespace JSX {
@@ -27,9 +28,11 @@ lordiconScript.async = true;
 document.head.appendChild(lordiconScript);
 render(
   <BrowserRouter>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <HelmetProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </HelmetProvider>
   </BrowserRouter>,
   document.getElementById('root')
 );

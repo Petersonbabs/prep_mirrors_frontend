@@ -21,6 +21,7 @@ import { subscription } from '../data/pricing';
 import { UnderDevelopmentComponent } from '../utils/utils';
 import Footer from '../components/layout/Footer';
 import Faqs from '../components/ui/Homepage/Faqs';
+import { Helmet } from 'react-helmet-async';
 interface HomePageProps {
   onGetStarted: () => void;
   onSignIn: () => void;
@@ -645,6 +646,13 @@ export function HomePage({ onGetStarted, onSignIn }: HomePageProps) {
   }, []);
   return (
     <div className="w-full bg-white dark:bg-neutral-900">
+      <Helmet>
+        <title>PrepMirrors – AI Mock Interview Practices</title>
+        <meta
+          name="description"
+          content="PrepMirrors uses AI to help job seekers and fresh graduate to prepare for interview with real AI Mock inteview practices, instant feedback and progress tracking."
+        />
+      </Helmet>
       {showDemo && <DemoModal onClose={() => setShowDemo(false)} />}
 
       {/* Hero */}

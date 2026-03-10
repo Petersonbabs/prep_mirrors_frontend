@@ -33,7 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'pricing',
-    label: 'Pricing',
+    label: 'Billing',
     path: '/pricing',
     icon: <CreditCardIcon className="w-4 h-4" />
   },
