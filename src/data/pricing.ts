@@ -1,3 +1,4 @@
+const formerPrice = 10
 const proMonthly = 7.99
 const proAnnually = 4.99
 const proFormerAnnually = proMonthly
@@ -34,6 +35,10 @@ export const subscription = {
             monthly: proMonthly,
             annually: proAnnually
         },
+        priceIds: {
+            monthly: "pri_01kkmpxhr6ynqm05dtffzmz3sc",
+            annual: "pri_01kkmq1b7r3vkmxt92hhw9265v"
+        },
         trialDays: 7,
         percentageOff: ((monthlyYearCost - annualYearCost) / monthlyYearCost * 100).toFixed(0),
         proFormerAnnually
@@ -43,22 +48,22 @@ export type PlanId = 'annual' | 'monthly'
 export type Plan = 'free' | 'pro'
 
 export const plans = [
-  {
-    id: 'annual',
-    label: 'Annual Plan',
-    price: `$${subscription.pro.price.annually}`,
-    period: '/month',
-    note: `Billed $${subscription.pro.price.annually * 12}/year`,
-    badge: 'BEST VALUE',
-    saving: `${subscription.pro.percentageOff}% OFF`
-  },
-  {
-    id: 'monthly',
-    label: 'Monthly Plan',
-    price: `$${subscription.pro.price.monthly}`,
-    period: '/month',
-    note: 'Cancel anytime'
-  }
+    {
+        id: 'annual',
+        label: 'Annual Plan',
+        price: `$${subscription.pro.price.annually}`,
+        period: '/month',
+        note: `Billed $${subscription.pro.price.annually * 12}/year`,
+        badge: 'BEST VALUE',
+        saving: `${subscription.pro.percentageOff}% OFF`
+    },
+    {
+        id: 'monthly',
+        label: 'Monthly Plan',
+        price: `$${subscription.pro.price.monthly}`,
+        period: '/month',
+        note: 'Cancel anytime'
+    }
 ]
 
 export const messages = {

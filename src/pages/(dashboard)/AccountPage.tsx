@@ -15,7 +15,6 @@ import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 // Replace with your real Paystack public key from https://dashboard.paystack.com
-const PAYSTACK_PUBLIC_KEY = 'pk_test_xxxxxxxxxxxxxxxxxxxxxx';
 type ActiveSection = 'profile' | 'billing' | 'security' | 'notifications';
 interface SectionButtonProps {
   id: ActiveSection;
@@ -34,7 +33,7 @@ function SectionButton({
   return (
     <button
       onClick={() => onClick(id)}
-      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 ${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
+      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-1 ${active ? 'bg-primary-50 dark:bg-primary-900/20 dark:text-primary-400bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 hover:text-neutral-900 dark:hover:text-white'}`}
       aria-current={active ? 'page' : undefined}>
 
       <span className={active ? 'text-indigo-600' : 'text-gray-400'}>
@@ -447,7 +446,7 @@ function NotificationsSection() {
     </div>);
 
 }
-const SignOutModal = ({ isOpen, onClose, onConfirm }: { isOpen: boolean; onClose: () => void; onConfirm: () => void }) => {
+const SignOutModal = ({ isOpen, onClose, onConfirm, isLoading }: { isOpen: boolean; onClose: () => void; onConfirm: () => void; isLoading: boolean }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
@@ -468,9 +467,13 @@ const SignOutModal = ({ isOpen, onClose, onConfirm }: { isOpen: boolean; onClose
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-3.5 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-colors shadow-soft"
+            disabled={isLoading}
+            className="flex-1 flex items-center gap-2 justify-center px-4 py-3.5 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm transition-colors shadow-soft"
           >
-            Sign Out
+            {isLoading &&
+              <Loader2 className='animate-spin' />
+            }
+            <span>Sign Out</span>
           </button>
         </div>
       </div>
@@ -479,7 +482,7 @@ const SignOutModal = ({ isOpen, onClose, onConfirm }: { isOpen: boolean; onClose
 };
 
 export function AccountPage() {
-  const { signOut } = useAuth();
+  const { signOut, isLoading } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<ActiveSection>('profile');
   const [showSignOutModal, setShowSignOutModal] = useState(false);
@@ -495,7 +498,7 @@ export function AccountPage() {
     notifications: <NotificationsSection />
   };
   return (
-    <div className="min-h-screen w-full bg-gray-50">
+    <div className="min-h-screen w-full bg-gray-50 dark:bg-neutral-900">
       <div className="max-w-5xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Account Settings
@@ -505,7 +508,7 @@ export function AccountPage() {
           {/* Sidebar */}
           <aside className="md:w-56 flex-shrink-0">
             <nav
-              className="bg-white border border-gray-200 rounded-2xl p-3 shadow-sm space-y-1"
+              className="bg-white dark:bg-neutral-800 dark:border-neutral-700 border border-gray-200 rounded-2xl p-3 shadow-sm space-y-1"
               aria-label="Account sections">
 
               <SectionButton
@@ -549,7 +552,7 @@ export function AccountPage() {
           </aside>
 
           {/* Main content */}
-          <main className="flex-1 bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm min-h-[400px]">
+          <main className="flex-1 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700  rounded-2xl p-6 sm:p-8 shadow-sm min-h-[400px]">
             {sectionContent[activeSection]}
           </main>
         </div>
@@ -559,6 +562,7 @@ export function AccountPage() {
         isOpen={showSignOutModal}
         onClose={() => setShowSignOutModal(false)}
         onConfirm={handleSignOut}
+        isLoading={isLoading}
       />
     </div>);
 

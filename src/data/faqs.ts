@@ -1,7 +1,7 @@
 export  const faqs = [
     {
         q: `What is PrepMirrors and how does it help?`,
-        a: `Think of it like a personal coach that you can access 24/7, anywhere to help you prepare for your job interview.
+        a: `Think of PrepMirrors as your personal Interview coach helping you prepare for your upcoming job interview. You can access this coach anytime (24/7), anywhere, with any device (phones, tabs, laptops).
         
         PrepMirrors is an AI-powered interview preparation platform that helps you practice for interviews with realistic AI interviewers. 
         

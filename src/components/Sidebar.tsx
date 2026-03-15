@@ -40,7 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'account',
     label: 'Account',
-    path: 'dashboard/account',
+    path: '/dashboard/account',
     icon: <UserIcon className="w-4 h-4" />
   },
   {

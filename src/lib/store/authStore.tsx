@@ -15,6 +15,7 @@ export interface UserProfile {
     email?: string;
     plan_type?: 'free' | 'pro';
     subscription_status?: 'active' | 'trialing' | 'cancelled' | 'expired';
+    subscription_tier?: 'free' | 'pro'
     trial_end_date?: string | null;
     next_billing_date?: string | null;
 }
@@ -45,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .eq('id', userId)
                 .single();
 
+
             if (error) {
                 if (error.code !== 'PGRST116') {
                     console.error('AuthProvider: Profile fetch error:', error);
@@ -68,7 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     plan_type: data.plan_type || 'free',
                     subscription_status: data.subscription_status || 'free',
                     trial_end_date: data.trial_end_date,
-                    next_billing_date: data.next_billing_date
+                    next_billing_date: data.next_billing_date,
+                    subscription_tier: data.subscription_tier
                 });
             } else {
                 setProfile(null);
@@ -86,7 +89,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, [user, fetchProfile]);
 
     const signOut = async () => {
+        setIsLoading(true)
         await supabase.auth.signOut();
+        setIsLoading(false)
         setSession(null);
         setProfile(null);
     };

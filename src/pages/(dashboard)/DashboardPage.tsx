@@ -12,6 +12,7 @@ import {
 import { DashboardWalkthrough } from '../../components/DashboardWalkthrough';
 import { useAuth } from '../../lib/hooks/useAuth';
 import { InterviewData, Page } from '../../App';
+import Paywall from '../../components/ui/Payment/Paywall';
 
 interface DashboardPageProps {
   onStartInterview: (interview: InterviewData) => void;
@@ -275,8 +276,8 @@ export function DashboardPage({
         <DashboardWalkthrough
           firstName={firstName}
           onComplete={onWalkthroughComplete} />
-
       }
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome header */}

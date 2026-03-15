@@ -125,8 +125,23 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const progressStep = questionSteps.filter((s: number) => s <= step).length;
   const totalProgressSteps = 6;
   const navigate = (dir: 'forward' | 'back') => {
+    const currentProfile: UserProfile = {
+      name: nameInput || 'Friend',
+      targetRole: selectedRole || '',
+      level: selectedLevel || '',
+      goal: selectedChallenge || '',
+      hiring_timeline: selectedTimeline || "",
+      pre_first_interview_confidence: preConfidenceScore as number,
+      post_first_interview_confidence: postConfidenceScore as number,
+      onboarding_completed: false,
+      last_onboarding_step: step,
+      subscription_tier: 'free'
+    };
+
+    syncProfileToSupabase(currentProfile)
     if (dir === 'forward') setStep((s: number) => s + 1); else
       setStep((s: number) => Math.max(0, s - 1));
+
   };
   const handleNext = () => navigate('forward');
   const handleBack = () => {
@@ -145,7 +160,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
             target_role: profileData.targetRole,
             experience_level: profileData.level,
             biggest_challenge: profileData.goal,
-            onboarding_completed: true,
+            onboarding_completed: profileData.onboarding_completed,
             updated_at: new Date().toISOString(),
             pre_first_interview_confidence: preConfidenceScore,
             post_first_interview_confidence: postConfidenceScore,
@@ -171,6 +186,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       hiring_timeline: selectedTimeline || "",
       pre_first_interview_confidence: preConfidenceScore as number,
       post_first_interview_confidence: postConfidenceScore as number,
+      onboarding_completed: true
     };
     await syncProfileToSupabase(finalProfile);
     onComplete();

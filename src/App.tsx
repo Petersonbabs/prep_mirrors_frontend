@@ -13,8 +13,6 @@ import { OnboardingPage } from './pages/onboarding/OnboardingPage';
 import { AuthPage } from './pages/AuthPage';
 import { AdminPage } from './pages/AdminPage';
 import { PricingPage } from './pages/PricingPage';
-import { AccountPage } from './pages/(dashboard)/AccountPage';
-import { SettingsPage } from './pages/(dashboard)/SettingsPage';
 import Signin from './pages/Signin';
 
 export type Theme = 'light' | 'dark' | 'system';
@@ -49,6 +47,12 @@ const SIDEBAR_PATHS = [
 import { useAuth } from './lib/hooks/useAuth';
 import PublicLayout from './components/provider/PublicLayout';
 import DashboardLayout from './components/provider/DashboardLayout';
+import PaddleProvider from './contexts/PaddleContext';
+import Paywall from './components/ui/Payment/Paywall';
+import PaymentSuccess from './pages/SuccessPage';
+import { Toaster } from 'react-hot-toast';
+import AuthCallback from './pages/AuthCallback';
+import OnboardingProvider from './pages/onboarding/components/OnboardingProvider';
 
 export function App() {
   const { user, profile: userProfile, isLoading, refreshProfile } = useAuth();
@@ -100,71 +104,80 @@ export function App() {
   const showSidebar = !!userProfile && SIDEBAR_PATHS.includes(location.pathname);
   return (
     <div className="min-h-screen w-full bg-white dark:bg-neutral-900 transition-colors duration-300 font-body">
-      {/* <ul>
-        {instruments.map((instrument) => (
-          <li key={instrument.name}>{instrument.name}</li>
-        ))}
-      </ul> */}
-      {showNavbar &&
-        <Navbar
-          theme={theme}
-          onThemeChange={setTheme}
-          showSidebar={showSidebar} />
-      }
+      <PaddleProvider>
+        <Toaster toastOptions={{
+          style: {
+            background: '#334155',
+            color: '#fff'
+          }
+        }} />
+        {showNavbar &&
+          <Navbar
+            theme={theme}
+            onThemeChange={setTheme}
+            showSidebar={showSidebar} />
+        }
 
-      {showSidebar && <Sidebar />}
+        {showSidebar && <Sidebar />}
 
-      <main
-        className={`${showNavbar ? 'pt-16' : ''} ${showSidebar ? 'md:pl-56' : ''}`}>
+        <main
+          className={`${showNavbar ? 'pt-16' : ''} ${showSidebar ? 'md:pl-56' : ''}`}>
 
-        <Routes>
-          <Route
-            path="/*"
-            element={
-              <PublicLayout />
-            } />
+          <Routes>
+            <Route
+              path="/*"
+              element={
+                <PublicLayout />
+              } />
 
-          <Route
-            path="/dashboard/*"
-            element={
-              <DashboardLayout />
-            } />
+            <Route
+              path="/dashboard/*"
+              element={
+                <DashboardLayout />
+              } />
 
-          <Route
-            path="/signin"
-            element={
-              <Signin />
-            }
-          />
+            <Route
+              path="/signin"
+              element={
+                <Signin />
+              }
+            />
 
-          <Route
-            path="/auth"
-            element={
-              <AuthPage
-                onContinue={() => navigate('/onboarding')}
-                onBack={() => navigate('/')} />
+            <Route
+              path="/auth"
+              element={
+                <AuthPage
+                  onContinue={() => navigate('/onboarding')}
+                  onBack={() => navigate('/')} />
 
-            } />
+              } />
 
-          <Route
-            path="/onboarding"
-            element={
-              (!isLoading && !user) ? <Navigate to="/auth" replace /> :
-                <OnboardingPage
-                  onComplete={handleOnboardingComplete}
-                  onBack={() => navigate('/auth')} />
-            } />
+            <Route path='/auth/callback' element={<AuthCallback />} />
+
+            <Route
+              path="/onboarding"
+              element={
+                (!isLoading && !user) ? <Navigate to="/auth" replace /> :
+                  <OnboardingProvider>
+                    <OnboardingPage
+                      onComplete={handleOnboardingComplete}
+                      onBack={() => navigate('/auth')} />
+                  </OnboardingProvider>
+              }
+            />
 
 
-          <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/paywall" element={<Paywall />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
 
 
-
-          <Route path="/admin" element={<AdminPage />} />
-          {/* Catch-all → home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
+            <Route path="/admin" element={<AdminPage />} />
+            {/* Catch-all → home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </PaddleProvider>
     </div>);
 
 }

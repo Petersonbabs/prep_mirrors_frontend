@@ -12,7 +12,7 @@ function Faqs() {
           <h2 className="font-display font-bold text-4xl text-neutral-900 dark:text-white mb-4">
             🤔 Have Questions? We Have Answers..
           </h2>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
+          <p className="text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto mt-6">
             Here are the answers to your most common questions. No guesswork,
             just clarity.
           </p>
@@ -39,7 +39,7 @@ function Faqs() {
                 <div
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                 >
-                  <div className="p-6 pt-0 text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <div className="p-6 pt-0 text-neutral-600 dark:text-neutral-400 mt-6 leading-relaxed">
                     {faq.a}
                   </div>
                 </div>

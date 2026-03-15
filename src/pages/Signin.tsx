@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { Provider } from '@supabase/supabase-js';
 import { UnderDevelopmentComponent } from '../utils/utils';
 import { useAuth } from '../lib/hooks/useAuth';
+import toast from 'react-hot-toast';
 
 const Signin = () => {
     const { user, profile, isLoading } = useAuth();
@@ -25,6 +26,7 @@ const Signin = () => {
 
     // If we are checking the session or if we HAVE a user but are still fetching their profile, 
     // keep showing a loading state to prevent the login page from flashing.
+    console.log(isLoading, user, profile)
     if (isLoading || (user && !profile)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
@@ -42,7 +44,7 @@ const Signin = () => {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider,
                 options: {
-                    redirectTo: `${window.location.origin}/onboarding`,
+                    redirectTo: `${window.location.origin}/auth/callback`,
                 },
             });
             if (error) throw error;
@@ -53,13 +55,15 @@ const Signin = () => {
 
     const handleEmailSubmit = async (e: any) => {
         e.preventDefault()
-        if (!email.includes('@')) return;
+        if (!email.includes('@')) {
+            toast.error("Use a valid email")
+            return};
         setSubmittingEmail(true)
         try {
             const { error } = await supabase.auth.signInWithOtp({
                 email,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/onboarding`,
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
                 },
             });
             if (error) throw error;

@@ -240,15 +240,13 @@ export function Navbar({
               </button>
               <div className="pt-2 space-y-2">
                 <button
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/signin')}
                   className="w-full px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 rounded-xl">
-
                   Sign in
                 </button>
                 <button
                   onClick={() => navigate('/onboarding')}
                   className="w-full px-4 py-2.5 text-sm font-semibold text-white bg-primary-500 hover:bg-primary-600 rounded-xl transition-colors">
-
                   Get Started Free
                 </button>
               </div>
