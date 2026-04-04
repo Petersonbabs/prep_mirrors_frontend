@@ -39,7 +39,7 @@ export const subscription = {
             monthly: "pri_01kkmpxhr6ynqm05dtffzmz3sc",
             annual: "pri_01kkmq1b7r3vkmxt92hhw9265v"
         },
-        trialDays: 7,
+        trialDays: 3,
         percentageOff: ((monthlyYearCost - annualYearCost) / monthlyYearCost * 100).toFixed(0),
         proFormerAnnually
     }

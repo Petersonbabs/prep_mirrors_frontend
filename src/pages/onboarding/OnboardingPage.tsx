@@ -54,10 +54,14 @@ const OnboardingSkeleton = () => (
 export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const { user, profile: userProfile, refreshProfile, isLoading } = useAuth();
   const location = useLocation();
+  const prefilledName = localStorage.getItem("prefillName")
+  const prefilledJob = localStorage.getItem("prefillJobTarget")
+  console.log(prefilledJob, prefilledName)
+  console.log(userProfile)
   const [step, setStep] = useState(location.state?.step || 0);
   const [profile, setProfile] = useState<Partial<UserProfile>>({
-    name: userProfile?.name || '',
-    targetRole: userProfile?.targetRole || '',
+    name: userProfile?.name || localStorage.getItem("prefillName") || '',
+    targetRole: userProfile?.targetRole || localStorage.getItem("prefillJobTarget") || '',
     level: userProfile?.level || '',
     goal: userProfile?.goal || '',
     hiring_timeline: userProfile?.hiring_timeline || '',
@@ -126,8 +130,8 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const totalProgressSteps = 6;
   const navigate = (dir: 'forward' | 'back') => {
     const currentProfile: UserProfile = {
-      name: nameInput || 'Friend',
-      targetRole: selectedRole || '',
+      name: nameInput || prefilledName || 'Friend',
+      targetRole: selectedRole || prefilledJob || '',
       level: selectedLevel || '',
       goal: selectedChallenge || '',
       hiring_timeline: selectedTimeline || "",
@@ -179,8 +183,8 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
 
   const handleSkip = async () => {
     const finalProfile: UserProfile = {
-      name: nameInput || 'Friend',
-      targetRole: selectedRole || '',
+      name: nameInput || prefilledName || 'Friend',
+      targetRole: selectedRole || prefilledJob || '',
       level: selectedLevel || '',
       goal: selectedChallenge || 'confidence',
       hiring_timeline: selectedTimeline || "",
@@ -193,9 +197,10 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   };
 
   const handleUpgrade = async () => {
+
     const finalProfile: UserProfile = {
-      name: nameInput || 'Friend',
-      targetRole: selectedRole || 'Software Engineer',
+      name: nameInput || prefilledName || 'Friend',
+      targetRole: selectedRole || prefilledJob || 'Software Engineer',
       level: selectedLevel || 'junior',
       goal: selectedChallenge || 'confidence',
       hiring_timeline: selectedTimeline || "a month",

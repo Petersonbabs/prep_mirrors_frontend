@@ -13,6 +13,7 @@
     "@emotion/react": "^11.13.3",
     "@paddle/paddle-js": "^1.6.2",
     "@supabase/supabase-js": "^2.98.0",
+    "@vapi-ai/web": "^2.5.2",
     "framer-motion": "^11.5.4",
     "lucide-react": "0.522.0",
     "react": "^18.3.1",

@@ -3,6 +3,7 @@ import { ArrowLeftIcon, ArrowRightIcon, MailIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Provider } from '@supabase/supabase-js';
+import { useLocation } from 'react-router-dom';
 
 interface AuthPageProps {
   onContinue: () => void;
@@ -206,6 +207,8 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
     if (!email.includes('@')) return;
     setView('otp');
   };
+  const location = useLocation();
+  const prefillData = location.state?.prefill;
 
   const handleContinueWithGoogle = async (provider: Provider) => {
     try {
@@ -221,6 +224,14 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
       console.log(error)
     }
   }
+
+  useEffect(() => {
+    if (prefillData) {
+      localStorage.setItem('prefillName', prefillData.name);
+      localStorage.setItem('prefillJobTarget', prefillData.jobTarget);
+    }
+  }, [prefillData]);
+
   return (
     <div className="min-h-screen w-full bg-white dark:bg-neutral-900 flex flex-col items-center justify-center px-6 py-12">
       {view === 'otp' ?
@@ -260,7 +271,7 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
           <div className="space-y-3">
             {/* Google */}
             <button
-              onClick={()=>{
+              onClick={() => {
                 handleContinueWithGoogle("google")
               }}
               className="w-full flex items-center gap-4 px-5 py-4 bg-white dark:bg-neutral-800 border-2 border-neutral-200 dark:border-neutral-700 rounded-2xl hover:border-neutral-300 dark:hover:border-neutral-600 hover:shadow-sm transition-all group">
