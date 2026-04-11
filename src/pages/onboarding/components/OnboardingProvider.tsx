@@ -6,6 +6,7 @@ interface OnboardingProps {
     children: ReactNode
 }
 
+
 const OnboardingProvider: React.FC<OnboardingProps> = ({ children }) => {
     const { profile, user, isLoading } = useAuth()
     if (!user && !isLoading) {

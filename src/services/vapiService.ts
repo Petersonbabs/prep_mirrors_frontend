@@ -64,6 +64,7 @@ class VapiService {
   async startInterview(
     assistantId: string,
     question: string,
+    params: any,
     callbacks: VapiCallbacks
   ): Promise<void> {
     if (!this.vapi || !this.isInitialized) {
@@ -77,6 +78,7 @@ class VapiService {
       
       await this.vapi.start(assistantId, {
         variableValues: {
+          ...params.variables,
           question: question,
         },
       });

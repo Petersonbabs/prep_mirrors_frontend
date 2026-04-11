@@ -1,18 +1,12 @@
 // frontend/src/components/quick-interview/QuickInterviewModal.tsx
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mic, MicOff, Loader2, Star, TrendingUp, Target, MessageCircle, Volume2 } from 'lucide-react';
+import { X, Mic, MicOff, Volume2 } from 'lucide-react';
 import { vapiService } from '../../services/vapiService';
 import toast from 'react-hot-toast';
-
-interface Feedback {
-  quality: number;
-  depth: number;
-  clarity: number;
-  confidence: number;
-  improvementTips: string;
-  overallFeedback: string;
-}
+import FeedbackDisplay from '../home/feedback/FeedbackDisplay';
+import { Feedback } from '../../lib/types';
+import { interviewApi } from '../../lib/api/interview';
 
 type Step = 'collect' | 'generating' | 'interview' | 'feedback';
 
@@ -114,22 +108,15 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
     setIsLoading(true);
     setStep('generating');
 
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/quick-interview/generate-question`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, jobTarget }),
-      });
+      const response = await interviewApi.generateQuestion(name, jobTarget);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.success) {
         toast.success("Your interview has been generated!")
-        setTempUserId(data.tempUserId);
-        setQuestion(data.question);
+        setTempUserId(response.tempUserId);
+        setQuestion(response.question);
         setStep('interview');
-      } else {
-        throw new Error('Failed to generate question');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -150,12 +137,14 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
     }
 
     setIsLoading(true);
+    toast.success('Requesting microphone...')
     setCallStatus('Requesting microphone...');
 
     try {
       await vapiService.startInterview(
         import.meta.env.VITE_VAPI_ASSISTANT_ID,
         question,
+        { jobTarget, name },
         {
           onCallStart: () => {
             setIsCallActive(true);
@@ -205,38 +194,21 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
   const processAnswer = async (answer: string) => {
     setIsProcessingAnswer(true);
     setCallStatus('Analyzing your answer...');
+    toast.success('Analyzing your answer')
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/quick-interview/process-answer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tempUserId,
-          question,
-          answerTranscript: answer,
-        }),
-      });
+      const response = await interviewApi.processAnswer(tempUserId as string, question, answer, jobTarget)
 
-      const data = await response.json();
-
-      if (data.success) {
-        setFeedback(data.feedback);
-        setAvgScore(data.avgScore);
+      if (response.success) {
+        toast.success("Your feedback is ready!")
+        setFeedback(response.feedback);
+        setAvgScore(response.avgScore);
         setStep('feedback');
       } else {
         throw new Error('Failed to process answer');
       }
     } catch (error) {
       console.error('Error:', error);
-      setFeedback({
-        quality: 4,
-        depth: 3,
-        clarity: 4,
-        confidence: 3,
-        improvementTips: "Use more specific examples from your experience.",
-        overallFeedback: "Good start! Try to structure your answers using the STAR method."
-      });
-      setAvgScore(3.5);
       setStep('feedback');
     } finally {
       setIsProcessingAnswer(false);
@@ -317,7 +289,7 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
             exit="exit"
             className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none"
           >
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto pointer-events-auto shadow-2xl">
+            <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto shadow-2xl">
               {/* Header */}
               <div className="flex justify-between items-center p-4 border-b dark:border-neutral-800">
                 <motion.h2
@@ -515,91 +487,12 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
                       initial="hidden"
                       animate="visible"
                       exit="exit"
-                      className="space-y-6"
                     >
-                      {/* Score Cards */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <ScoreCard label="Quality" value={feedback.quality} icon={<Star className="w-5 h-5 text-yellow-500" />} index={0} />
-                        <ScoreCard label="Depth" value={feedback.depth} icon={<TrendingUp className="w-5 h-5 text-green-500" />} index={1} />
-                        <ScoreCard label="Clarity" value={feedback.clarity} icon={<Target className="w-5 h-5 text-blue-500" />} index={2} />
-                        <ScoreCard label="Confidence" value={feedback.confidence} icon={<MessageCircle className="w-5 h-5 text-purple-500" />} index={3} />
-                      </div>
-
-                      {/* Overall Score */}
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', delay: 0.4 }}
-                        className="text-center"
-                      >
-                        <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 px-4 py-2 rounded-full">
-                          <Star className="w-4 h-4 text-primary-500 fill-current" />
-                          <span className="font-semibold">Overall: {avgScore.toFixed(1)}/5</span>
-                        </div>
-                      </motion.div>
-
-                      {/* Feedback */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-4"
-                      >
-                        <p className="font-medium mb-2">Overall Feedback</p>
-                        <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-3">{feedback.overallFeedback}</p>
-                        <p className="font-medium mb-1">💡 Improvement Tip</p>
-                        <p className="text-neutral-600 dark:text-neutral-400 text-sm">{feedback.improvementTips}</p>
-                      </motion.div>
-
-                      {/* Transcript of user's answer */}
-                      {userTranscript && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.6 }}
-                          className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-4"
-                        >
-                          <p className="font-medium mb-2">Your Answer</p>
-                          <p className="text-neutral-600 dark:text-neutral-400 text-sm italic">"{userTranscript}"</p>
-                        </motion.div>
-                      )}
-
-                      {/* CTA Buttons */}
-                      <div className="space-y-3">
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={handleContinue}
-                          disabled={isLoading}
-                          className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                          {isLoading ? (
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                            />
-                          ) : (
-                            'Continue Full Experience →'
-                          )}
-                        </motion.button>
-
-                        <motion.button
-                          whileHover={{ scale: 1.01 }}
-                          whileTap={{ scale: 0.99 }}
-                          onClick={() => {
-                            setStep('collect');
-                            setName('');
-                            setJobTarget('');
-                            setUserTranscript('');
-                            transcriptRef.current = '';
-                            setFeedback(null);
-                          }}
-                          className="w-full py-3 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 font-medium rounded-xl transition-colors"
-                        >
-                          Try Another Question
-                        </motion.button>
-                      </div>
+                      <FeedbackDisplay
+                        feedback={feedback}
+                        question={question}
+                        onNext={handleContinue}
+                      />
                     </motion.div>
                   )}
                 </AnimatePresence>

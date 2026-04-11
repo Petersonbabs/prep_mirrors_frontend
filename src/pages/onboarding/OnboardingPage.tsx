@@ -1,9 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   ArrowLeftIcon,
   CheckIcon,
-  Loader2
 } from
   'lucide-react';
 import { UserProfile } from '../../lib/store/authStore';
@@ -20,6 +19,8 @@ import PaywallScreen from './components/PaymentWallScreen';
 import { CHALLENGE_FACTS, CHALLENGES, LEVEL_FACTS, LEVELS, ROLE_FACTS, ROLES, TIMELINE_FACTS, TIMELINES } from '../data/data';
 
 import { useAuth } from '../../lib/hooks/useAuth';
+import { generateQuestionsParams, onboardingApi } from '../../lib/api/onboarding';
+import toast from 'react-hot-toast';
 
 interface OnboardingPageProps {
   onComplete: () => void;
@@ -56,8 +57,6 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const location = useLocation();
   const prefilledName = localStorage.getItem("prefillName")
   const prefilledJob = localStorage.getItem("prefillJobTarget")
-  console.log(prefilledJob, prefilledName)
-  console.log(userProfile)
   const [step, setStep] = useState(location.state?.step || 0);
   const [profile, setProfile] = useState<Partial<UserProfile>>({
     name: userProfile?.name || localStorage.getItem("prefillName") || '',
@@ -83,6 +82,8 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
     userProfile?.post_first_interview_confidence || null
   );
 
+  const [generatingQuestions, setGeneratingQuestions] = useState(false)
+  const [questionsGenerated, setQuestionsGenerated] = useState(false);
 
   useEffect(() => {
     if (userProfile && step === 0 && !location.state?.step) {
@@ -147,6 +148,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       setStep((s: number) => Math.max(0, s - 1));
 
   };
+
   const handleNext = () => navigate('forward');
   const handleBack = () => {
     if (step === 0) onBack(); else
@@ -166,6 +168,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
             biggest_challenge: profileData.goal,
             onboarding_completed: profileData.onboarding_completed,
             updated_at: new Date().toISOString(),
+            goal: profileData.goal,
             pre_first_interview_confidence: preConfidenceScore,
             post_first_interview_confidence: postConfidenceScore,
             last_onboarding_step: step,
@@ -222,9 +225,37 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
     if (step === 8) return !!selectedTimeline;
     return true;
   };
+
+
+  async function handleGenerateQuestions() {
+    setGeneratingQuestions(true)
+    setQuestionsGenerated(false);
+    try {
+      const payload: generateQuestionsParams = {
+        profileId: user?.id as string,
+        targetRole: profile.targetRole as string,
+        level: profile.level,
+        goal: profile.goal,
+        numQuestions: 3,
+        interviewType: "mixed"
+      }
+      const response = await onboardingApi.generateQuestions(payload)
+      if (response.success) {
+        setQuestionsGenerated(true);
+        localStorage.setItem('onboardingQuestions', JSON.stringify(response.questions));
+      }
+    } catch (error: any) {
+      toast.error(error.message)
+      console.log("Failed to generate questions", error)
+    } finally {
+      setGeneratingQuestions(false)
+    }
+  }
+
   const firstName = nameInput.split(' ')[0] || 'there';
   const roleLabel =
     ROLES.find((r) => r.id === selectedRole)?.label || 'your role';
+
   const commitmentText = (() => {
     if (selectedChallenge === 'nerves')
       return 'walk into every interview calm, prepared, and confident.';
@@ -252,6 +283,8 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const timelineFact = selectedTimeline ?
     TIMELINE_FACTS[selectedTimeline] :
     null;
+
+
   if (step === 20)
     return <PaywallScreen onUpgrade={handleUpgrade} onSkip={handleSkip} />;
   // Full-screen steps (no top bar, no padding)
@@ -261,11 +294,18 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
         <MockInterviewScreen
           onContinue={handleNext}
           firstName={firstName}
-          onPreConfidenceSet={setPreConfidenceScore} />
+          onPreConfidenceSet={setPreConfidenceScore} 
+          jobTarget={profile.targetRole as string}
+          profileId={user?.id as string}
+
+          />
 
       </div>);
 
   }
+
+
+
   return (
     <div className="min-h-screen w-full bg-white dark:bg-neutral-900 flex flex-col border-gray-500">
       {/* Top bar */}
@@ -615,7 +655,10 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               </p>
             </div>
             <button
-              onClick={handleNext}
+              onClick={() => {
+                handleNext()
+                handleGenerateQuestions()
+              }}
               className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors text-base shadow-soft">
 
               I'm ready →
@@ -624,13 +667,15 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
         }
 
         {/* ── Step 11: Aha Moment ── */}
-        {step === 11 &&
+        {step === 11 && (
           <AhaMomentScreen
             firstName={firstName}
             roleLabel={roleLabel}
-            onContinue={handleNext} />
-
-        }
+            onContinue={handleNext}
+            generatingQuestions={generatingQuestions}
+            questionsGenerated={questionsGenerated}
+          />
+        )}
 
         {/* Step 12 handled above (full screen) */}
 
