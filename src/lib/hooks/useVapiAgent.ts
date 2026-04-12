@@ -1,4 +1,3 @@
-// components/agent/VapiAgent.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,7 +15,7 @@ interface Message {
     content: string;
 }
 
-interface VapiAgentProps {
+interface UseVapiAgentProps {
     assistantId: string;
     questions?: string[];
     userName?: string;
@@ -26,15 +25,15 @@ interface VapiAgentProps {
     onTranscriptUpdate?: (message: Message) => void;
 }
 
-export function VapiAgent({
+export function useVapiAgent({
     assistantId,
     questions,
     userName,
     jobTarget,
     onCallEnd,
     onStatusChange,
-    onTranscriptUpdate  
-}: VapiAgentProps) {
+    onTranscriptUpdate
+}: UseVapiAgentProps) {
     const [callStatus, setCallStatus] = useState<CallStatus>(CallStatus.INACTIVE);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isSpeaking, setIsSpeaking] = useState(false);
@@ -63,12 +62,20 @@ export function VapiAgent({
                 };
                 setMessages(prev => [...prev, newMessage]);
                 setLastMessage(message.transcript);
-                 onTranscriptUpdate?.(newMessage)
+                onTranscriptUpdate?.(newMessage);
             }
         };
 
-        const onSpeechStart = () => setIsSpeaking(true);
-        const onSpeechEnd = () => setIsSpeaking(false);
+        const onSpeechStart = () => {
+            setIsSpeaking(true);
+            onStatusChange?.(callStatus, { isSpeaking: true, role: 'assistant' });
+        };
+
+        const onSpeechEnd = () => {
+            setIsSpeaking(false);
+            onStatusChange?.(callStatus, { isSpeaking: false, role: 'assistant' });
+        };
+
         const onError = (error: Error) => console.error("Vapi error:", error);
 
         vapi.on("call-start", onCallStart);
@@ -86,7 +93,7 @@ export function VapiAgent({
             vapi.off("speech-end", onSpeechEnd);
             vapi.off("error", onError);
         };
-    }, [onStatusChange, onTranscriptUpdate]);
+    }, [onStatusChange, onTranscriptUpdate, callStatus]);
 
     // Handle call end and trigger feedback
     useEffect(() => {
@@ -96,16 +103,18 @@ export function VapiAgent({
     }, [callStatus, messages, onCallEnd]);
 
     const startCall = async () => {
+        console.log("Starting call...")
         setCallStatus(CallStatus.CONNECTING);
         onStatusChange?.(CallStatus.CONNECTING);
 
-        await vapi.start(assistantId, {
+        await vapi.start("53a0e05b-9738-427a-b018-0c96e460e917", {
             variableValues: {
                 questions: formattedQuestions,
                 name: userName,
                 jobTarget: jobTarget,
             }
         });
+        console.log("call started")
     };
 
     const endCall = () => {

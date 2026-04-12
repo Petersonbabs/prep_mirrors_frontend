@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { confidenceLevels } from "../../../data/interview";
 import { CheckIcon, Loader2 } from "lucide-react";
-import { VapiAgent, CallStatus } from "../../../components/interview/VapiAgent";
+import { useVapiAgent, CallStatus } from "../../../lib/hooks/useVapiAgent";
 import { onboardingApi } from "../../../lib/api/onboarding";
 
 const AI_INTERVIEWER = {
@@ -46,6 +46,8 @@ function MockInterviewScreen({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const userName = firstName || 'You';
+
+
 
   // Fetch questions on mount
   useEffect(() => {
@@ -139,6 +141,42 @@ function MockInterviewScreen({
       }
     }
   };
+
+  // VAPI HOOK
+  const {
+    callStatus,
+    isSpeaking,
+    messages: vapiMessages,
+    startCall,
+    endCall
+  } = useVapiAgent({
+    assistantId: import.meta.env.VITE_VAPI_ONBOARDING_INTERVIEW_ASSISTANT_ID,
+    questions: questions,
+    userName: userName,
+    jobTarget: jobTarget,
+    onCallEnd: handleCallEnd,
+    onStatusChange: handleStatusChange,
+    onTranscriptUpdate: handleTranscriptUpdate
+  });
+
+  useEffect(() => {
+    if (callStatus === CallStatus.ACTIVE) {
+      setCallActive(true);
+    }
+    if (callStatus === CallStatus.FINISHED) {
+      setCallActive(false);
+    }
+  }, [callStatus]);
+
+  // Update speaking indicators based on isSpeaking
+  useEffect(() => {
+    if (isSpeaking) {
+      setIsAiSpeaking(true);
+      setIsUserSpeaking(false);
+    } else {
+      setIsAiSpeaking(false);
+    }
+  }, [isSpeaking]);
 
   const formatTime = (s: number) =>
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -326,7 +364,7 @@ function MockInterviewScreen({
       {/* Video tiles */}
       <div className="flex-shrink-0 p-4 grid grid-cols-2 gap-3">
         {/* AI Interviewer tile */}
-        <div className="relative bg-neutral-800 rounded-2xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
+        <div className="relative bg-neutral-800 rounded-2xl overflow-hidden aspect-[6/6] sm:aspect-[4/3] md:aspect-[7/3]">
           <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-neutral-900/80 to-neutral-900" />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <div
@@ -372,7 +410,7 @@ function MockInterviewScreen({
         </div>
 
         {/* User tile */}
-        <div className="relative bg-neutral-800 rounded-2xl overflow-hidden" style={{ aspectRatio: '4/3' }}>
+        <div className="relative bg-neutral-800 rounded-2xl overflow-hidden aspect-[6/6] sm:aspect-[4/3] md:aspect-[7/3]" >
           <div className="absolute inset-0 bg-gradient-to-br from-neutral-700/50 to-neutral-900" />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <div
@@ -459,16 +497,6 @@ function MockInterviewScreen({
         </div>
       </div>
 
-      {/* VapiAgent Component - No UI, just handles the call */}
-      {/* <VapiAgent
-        assistantId={import.meta.env.VITE_VAPI_ASSISTANT_ID}
-        questions={questions}
-        userName={userName}
-        jobTarget={jobTarget}
-        onCallEnd={handleCallEnd}
-        onStatusChange={handleStatusChange}
-        onTranscriptUpdate={handleTranscriptUpdate}
-      /> */}
 
       {/* Controls */}
       <div className="px-4 pb-5 flex-shrink-0 bg-neutral-950">
@@ -481,10 +509,7 @@ function MockInterviewScreen({
               </p>
             </div>
             <button
-              onClick={() => {
-                const event = new CustomEvent('start-vapi-call');
-                window.dispatchEvent(event);
-              }}
+              onClick={startCall}
               className="w-full py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors"
             >
               Start Interview →

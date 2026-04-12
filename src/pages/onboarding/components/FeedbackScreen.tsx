@@ -19,6 +19,7 @@ interface OnboardingFeedbackScreenProps {
   preConfidenceScore?: number | null;
   onPostConfidenceSet?: (score: number) => void;
   onContinue: () => void;
+  isLoading?: boolean;
 }
 
 export default function OnboardingFeedbackScreen({
@@ -31,6 +32,7 @@ export default function OnboardingFeedbackScreen({
   preConfidenceScore,
   onPostConfidenceSet,
   onContinue,
+  isLoading = false
 }: OnboardingFeedbackScreenProps) {
   const [postConfidence, setPostConfidence] = useState<number | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
@@ -65,6 +67,26 @@ export default function OnboardingFeedbackScreen({
   };
 
   const overallPercent = Math.round((overallScore / 5) * 100);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-lg mx-auto w-full pt-4">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 rounded-full bg-neutral-200 dark:bg-neutral-700 animate-pulse mx-auto mb-4" />
+          <div className="h-8 w-48 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse mx-auto mb-2" />
+          <div className="h-4 w-64 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse mx-auto" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl p-4 animate-pulse">
+              <div className="h-4 w-32 bg-neutral-200 dark:bg-neutral-700 rounded mb-2" />
+              <div className="h-3 w-full bg-neutral-200 dark:bg-neutral-700 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto w-full pt-4 animate-slide-up">
@@ -117,8 +139,8 @@ export default function OnboardingFeedbackScreen({
                 {delta !== null && delta > 0
                   ? `You feel ${delta} step${delta > 1 ? 's' : ''} more confident than when you started! 🎉`
                   : delta === 0
-                  ? "Your confidence held steady — that's a good sign."
-                  : "Thanks for being honest. That's exactly what we'll work on."}
+                    ? "Your confidence held steady — that's a good sign."
+                    : "Thanks for being honest. That's exactly what we'll work on."}
               </p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                 Response recorded · We'll track this as you practice
@@ -143,8 +165,8 @@ export default function OnboardingFeedbackScreen({
           {overallScore >= 4
             ? "Strong performance — let's make it exceptional."
             : overallScore >= 3
-            ? 'Solid foundation — clear areas to sharpen.'
-            : 'Good start — significant room to grow with practice.'}
+              ? 'Solid foundation — clear areas to sharpen.'
+              : 'Good start — significant room to grow with practice.'}
         </p>
       </div>
 
@@ -153,11 +175,10 @@ export default function OnboardingFeedbackScreen({
         {questionsFeedback.map((q, idx) => (
           <div
             key={idx}
-            className={`rounded-2xl border p-4 ${
-              idx === weakestQuestionIndex
+            className={`rounded-2xl border p-4 ${idx === weakestQuestionIndex
                 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                 : getScoreBg(q.score)
-            }`}
+              }`}
           >
             <div className="flex items-start justify-between gap-3 mb-2">
               <div className="flex items-center gap-2">

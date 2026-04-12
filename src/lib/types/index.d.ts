@@ -43,3 +43,25 @@ export enum AiProvider {
   GEMINI = 'gemini',
   OPENAI = 'openai'
 }
+
+export interface QuestionFeedback {
+  question_text: string;
+  score: number;
+  key_strength: string;
+  key_improvement: string;
+  reference_to_answer: string;
+}
+
+export interface OnboardingFeedback {
+  overall_score: number;
+  weakest_question_index: number;
+  questions: QuestionFeedback[];
+  overall_advice: string;
+  suggested_practice: string;
+}
+
+export interface FeedbackResponse {
+  success: boolean;
+  data?: OnboardingFeedback;
+  error?: string;
+}

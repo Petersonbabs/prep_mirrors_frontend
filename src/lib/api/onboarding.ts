@@ -1,4 +1,4 @@
-import { AiProvider } from "../types";
+import { AiProvider, FeedbackResponse } from "../types";
 
 // frontend/src/lib/api/onboarding.ts
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4444';
@@ -47,6 +47,14 @@ export const onboardingApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ profileId, postConfidenceScore }),
+    });
+    return response.json();
+  },
+
+  getMyFeedback: async (profileId: string): Promise<FeedbackResponse> => {
+    const response = await fetch(`${API_URL}/api/onboarding/feedback/${profileId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
     });
     return response.json();
   },

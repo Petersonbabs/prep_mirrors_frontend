@@ -21,6 +21,7 @@ import { CHALLENGE_FACTS, CHALLENGES, LEVEL_FACTS, LEVELS, ROLE_FACTS, ROLES, TI
 import { useAuth } from '../../lib/hooks/useAuth';
 import { generateQuestionsParams, onboardingApi } from '../../lib/api/onboarding';
 import toast from 'react-hot-toast';
+import { OnboardingFeedback } from '../../lib/types';
 
 interface OnboardingPageProps {
   onComplete: () => void;
@@ -57,6 +58,8 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const location = useLocation();
   const prefilledName = localStorage.getItem("prefillName")
   const prefilledJob = localStorage.getItem("prefillJobTarget")
+  const [feedbackData, setFeedbackData] = useState<OnboardingFeedback | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState(false);
   const [step, setStep] = useState(location.state?.step || 0);
   const [profile, setProfile] = useState<Partial<UserProfile>>({
     name: userProfile?.name || localStorage.getItem("prefillName") || '',
@@ -120,6 +123,12 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
     };
     if (step > 0) updateStep();
   }, [step]);
+
+  useEffect(() => {
+    if (step === 13 && user?.id && !feedbackData) {
+      fetchFeedback();
+    }
+  }, []);
 
   if (isLoading) {
     return <OnboardingSkeleton />;
@@ -252,6 +261,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
     }
   }
 
+
   const firstName = nameInput.split(' ')[0] || 'there';
   const roleLabel =
     ROLES.find((r) => r.id === selectedRole)?.label || 'your role';
@@ -294,15 +304,33 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
         <MockInterviewScreen
           onContinue={handleNext}
           firstName={firstName}
-          onPreConfidenceSet={setPreConfidenceScore} 
+          onPreConfidenceSet={setPreConfidenceScore}
           jobTarget={profile.targetRole as string}
           profileId={user?.id as string}
 
-          />
+        />
 
       </div>);
 
   }
+
+  const fetchFeedback = async () => {
+    if (!user?.id) return;
+
+    setLoadingFeedback(true);
+    try {
+      const response = await onboardingApi.getMyFeedback(user.id);
+      if (response.success && response.data) {
+        setFeedbackData(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+    } finally {
+      setLoadingFeedback(false);
+    }
+  };
+
+  // When entering step 13, fetch feedback
 
 
 
@@ -683,10 +711,18 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
         {step === 13 &&
           <FeedbackScreen
             firstName={firstName}
-            onContinue={handleNext}
+            overallScore={feedbackData?.overall_score || 0}
+            weakestQuestionIndex={feedbackData?.weakest_question_index || 0}
+            questionsFeedback={feedbackData?.questions || []}
+            overallAdvice={feedbackData?.overall_advice || "Complete the interview to get personalized feedback"}
+            suggestedPractice={feedbackData?.suggested_practice || "Try another practice interview"}
             preConfidenceScore={preConfidenceScore}
-            onPostConfidenceSet={setPostConfidenceScore} />
-
+            onPostConfidenceSet={setPostConfidenceScore}
+            onContinue={() => {
+              // Save post confidence and continue
+              handleNext();
+            }}
+          />
         }
 
         {/* ── Steps 14-18: Feature Showcase ── */}
