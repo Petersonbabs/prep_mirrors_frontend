@@ -33,11 +33,11 @@ export const onboardingApi = {
     return response.json();
   },
 
-  submitAnswers: async (tempUserId: string, questions: string[], answers: string[], userProfile: any) => {
+  submitAnswers: async (profileId: string,  conversation: Array<{ role: string; content: string }>, userProfile: any) => {
     const response = await fetch(`${API_URL}/api/onboarding/submit-answers`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tempUserId, questions, answers, userProfile }),
+      body: JSON.stringify({ profileId, conversation, userProfile, interviewType: "mixed" }),
     });
     return response.json();
   },

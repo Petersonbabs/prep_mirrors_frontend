@@ -13,7 +13,6 @@ import EducationFactScreen from './components/EducationFactScreen';
 import AhaMomentScreen from './components/AhaMomentScreen';
 import MockInterviewScreen from './components/MockInterviewScreen';
 import FeatureShowcaseScreen from './components/FeatureShowcaseScreen';
-import FeedbackScreen from './components/FeedbackScreen';
 import CommitButton from './components/CommitmentButton';
 import PaywallScreen from './components/PaymentWallScreen';
 import { CHALLENGE_FACTS, CHALLENGES, LEVEL_FACTS, LEVELS, ROLE_FACTS, ROLES, TIMELINE_FACTS, TIMELINES } from '../data/data';
@@ -21,7 +20,7 @@ import { CHALLENGE_FACTS, CHALLENGES, LEVEL_FACTS, LEVELS, ROLE_FACTS, ROLES, TI
 import { useAuth } from '../../lib/hooks/useAuth';
 import { generateQuestionsParams, onboardingApi } from '../../lib/api/onboarding';
 import toast from 'react-hot-toast';
-import { OnboardingFeedback } from '../../lib/types';
+import OnboardingFeedbackScreen from './components/FeedbackScreen';
 
 interface OnboardingPageProps {
   onComplete: () => void;
@@ -58,9 +57,9 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const location = useLocation();
   const prefilledName = localStorage.getItem("prefillName")
   const prefilledJob = localStorage.getItem("prefillJobTarget")
-  const [feedbackData, setFeedbackData] = useState<OnboardingFeedback | null>(null);
-  const [loadingFeedback, setLoadingFeedback] = useState(false);
+
   const [step, setStep] = useState(location.state?.step || 0);
+
   const [profile, setProfile] = useState<Partial<UserProfile>>({
     name: userProfile?.name || localStorage.getItem("prefillName") || '',
     targetRole: userProfile?.targetRole || localStorage.getItem("prefillJobTarget") || '',
@@ -123,12 +122,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
     };
     if (step > 0) updateStep();
   }, [step]);
-
-  useEffect(() => {
-    if (step === 13 && user?.id && !feedbackData) {
-      fetchFeedback();
-    }
-  }, []);
+  
 
   if (isLoading) {
     return <OnboardingSkeleton />;
@@ -307,28 +301,16 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
           onPreConfidenceSet={setPreConfidenceScore}
           jobTarget={profile.targetRole as string}
           profileId={user?.id as string}
-
+          profile={profile}
         />
 
       </div>);
 
   }
 
-  const fetchFeedback = async () => {
-    if (!user?.id) return;
+  console.log("step", step)
 
-    setLoadingFeedback(true);
-    try {
-      const response = await onboardingApi.getMyFeedback(user.id);
-      if (response.success && response.data) {
-        setFeedbackData(response.data);
-      }
-    } catch (error) {
-      console.error('Error fetching feedback:', error);
-    } finally {
-      setLoadingFeedback(false);
-    }
-  };
+  
 
   // When entering step 13, fetch feedback
 
@@ -709,19 +691,10 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
 
         {/* ── Step 13: Feedback ── */}
         {step === 13 &&
-          <FeedbackScreen
+          <OnboardingFeedbackScreen
             firstName={firstName}
-            overallScore={feedbackData?.overall_score || 0}
-            weakestQuestionIndex={feedbackData?.weakest_question_index || 0}
-            questionsFeedback={feedbackData?.questions || []}
-            overallAdvice={feedbackData?.overall_advice || "Complete the interview to get personalized feedback"}
-            suggestedPractice={feedbackData?.suggested_practice || "Try another practice interview"}
             preConfidenceScore={preConfidenceScore}
-            onPostConfidenceSet={setPostConfidenceScore}
-            onContinue={() => {
-              // Save post confidence and continue
-              handleNext();
-            }}
+            onContinue={handleNext}
           />
         }
 

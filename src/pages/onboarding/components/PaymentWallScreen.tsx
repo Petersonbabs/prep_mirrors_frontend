@@ -1,7 +1,8 @@
+// frontend/src/components/PaywallScreen.tsx
 import { useState } from "react";
 import { PlanId, plans, subscription } from "../../../data/pricing";
 import { CheckIcon } from "lucide-react";
-import { usePaddle } from "../../../contexts/PaddleContext"; // Adjust path as needed
+import { useLemonSqueezy } from "../../../contexts/LemonSqueezyContext";
 import { useAuth } from "../../../lib/hooks/useAuth";
 
 function PaywallScreen({
@@ -9,38 +10,26 @@ function PaywallScreen({
   onSkip
 }: { onUpgrade: () => void; onSkip: () => void; }) {
   const [selected, setSelected] = useState<PlanId>('annual');
-  const { openCheckout, startFreeTrial, isLoading } = usePaddle();
+  const { checkout, isLoading } = useLemonSqueezy();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [trialMode, setTrialMode] = useState<'paddle' | 'self'>('paddle');
   const { user } = useAuth();
 
   const handleUpgrade = async () => {
+    if (!user?.email) {
+      console.error('No user email found');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      if (trialMode === 'self') {
-        // Self-managed trial (no card required)
-        const success = await startFreeTrial(user?.id as string);
-        if (success) {
-          onUpgrade(); // Redirect to dashboard with trial active
-        }
-      } else {
-        // Paddle-managed trial (card required)
-        const priceId = selected === 'annual'
-          ? import.meta.env.VITE_PADDLE_ANNUALLY_PRICE_ID
-          : import.meta.env.VITE_PADDLE_MONTHLY_PRICE_ID;
-        openCheckout({
-          items: [{ priceId, quantity: 1 }],
-          customer: { email: user?.email },
-          customerData: { profileId: user?.id },
-          settings: {
-            displayMode: 'overlay',  // 'displayMode' not 'displayMods'
-            theme: 'light',
-            successUrl: `${window.location.origin}/payment-success`  // 'successUrl' not 'success'
-          }
-        });
-        // onUpgrade will be called via webhook
-      }
+      const variantId = selected === 'annual'
+        ? import.meta.env.VITE_LEMONSQUEEZY_ANNUAL_VARIANT_ID
+        : import.meta.env.VITE_LEMONSQUEEZY_MONTHLY_VARIANT_ID;
+
+      // This will redirect to Lemon Squeezy checkout page
+      await checkout(variantId, user.email, user.id);
+      // Note: onUpgrade will be called after successful payment via webhook
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -48,7 +37,6 @@ function PaywallScreen({
     }
   };
 
-  // Your existing beautiful UI - unchanged!
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-b">
       <div className="flex justify-end px-6 pt-6">
@@ -168,7 +156,7 @@ function PaywallScreen({
           {isProcessing ? (
             <span className="flex items-center justify-center gap-2">
               <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              {trialMode === 'self' ? 'Starting trial...' : 'Opening checkout...'}
+              Opening checkout...
             </span>
           ) : (
             `Start Free Trial — ${subscription.pro.trialDays} Days`

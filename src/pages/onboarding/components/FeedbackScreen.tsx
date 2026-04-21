@@ -1,41 +1,80 @@
 // frontend/src/components/onboarding/OnboardingFeedbackScreen.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { onboardingApi } from '../../../lib/api/onboarding';
+import { useAuth } from '../../../lib/hooks/useAuth';
+import toast from 'react-hot-toast';
 
-interface QuestionFeedback {
-  question_text: string;
+// Define types directly in component to avoid import issues
+interface CategoryScore {
+  name: string;
   score: number;
-  key_strength: string;
-  key_improvement: string;
-  reference_to_answer: string;
+  comment: string;
+  quote?: string;
+}
+
+interface SuggestedPractice {
+  title: string;
+  description: string;
+  url?: string;
+  type: 'article' | 'video' | 'exercise' | 'course';
+}
+
+interface OnboardingFeedback {
+  overall_score: number;
+  categoryScores: CategoryScore[];
+  strengths: string[];
+  areasForImprovement: string[];
+  suggested_practice: SuggestedPractice;
+  finalAssessment: string;
 }
 
 interface OnboardingFeedbackScreenProps {
   firstName: string;
-  overallScore: number;
-  weakestQuestionIndex: number;
-  questionsFeedback: QuestionFeedback[];
-  overallAdvice: string;
-  suggestedPractice: string;
   preConfidenceScore?: number | null;
   onPostConfidenceSet?: (score: number) => void;
   onContinue: () => void;
-  isLoading?: boolean;
 }
 
 export default function OnboardingFeedbackScreen({
   firstName,
-  overallScore,
-  weakestQuestionIndex,
-  questionsFeedback,
-  overallAdvice,
-  suggestedPractice,
   preConfidenceScore,
   onPostConfidenceSet,
   onContinue,
-  isLoading = false
 }: OnboardingFeedbackScreenProps) {
   const [postConfidence, setPostConfidence] = useState<number | null>(null);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [isSavingConfidence, setIsSavingConfidence] = useState(false);
+  const [feedbackData, setFeedbackData] = useState<OnboardingFeedback | null>(null);
+  const [loadingFeedback, setLoadingFeedback] = useState(true); // Start true
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchFeedback();
+    }
+  }, [user?.id]); // Add dependency
+
+  const fetchFeedback = async () => {
+    if (!user?.id) {
+      toast.error("User not found");
+      setLoadingFeedback(false);
+      return;
+    }
+
+    try {
+      const response = await onboardingApi.getMyFeedback(user.id);
+      if (response.success && response.data) {
+        setFeedbackData(response.data);
+      } else {
+        toast.error(response.error || "Failed to load feedback");
+      }
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      toast.error("Failed to load your feedback");
+    } finally {
+      setLoadingFeedback(false);
+    }
+  };
 
   const confidenceEmojis = ['😰', '😟', '😐', '🙂', '😄'];
   const confidenceLabels = [
@@ -46,10 +85,16 @@ export default function OnboardingFeedbackScreen({
     'Very confident',
   ];
 
-  const handlePostConfidence = (score: number) => {
+  const handlePostConfidence = async (score: number) => {
     setPostConfidence(score);
     setRatingSubmitted(true);
-    onPostConfidenceSet?.(score);
+    setIsSavingConfidence(true);
+
+    if (onPostConfidenceSet) {
+      await onPostConfidenceSet(score);
+    }
+
+    setIsSavingConfidence(false);
   };
 
   const delta = postConfidence && preConfidenceScore ? postConfidence - preConfidenceScore : null;
@@ -66,9 +111,10 @@ export default function OnboardingFeedbackScreen({
     return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
   };
 
-  const overallPercent = Math.round((overallScore / 5) * 100);
+  const overallPercent = feedbackData ? Math.round((feedbackData.overall_score / 5) * 100) : 0;
+  const overallScore = feedbackData?.overall_score ?? 0;
 
-  if (isLoading) {
+  if (loadingFeedback) {
     return (
       <div className="max-w-lg mx-auto w-full pt-4">
         <div className="text-center mb-6">
@@ -77,7 +123,7 @@ export default function OnboardingFeedbackScreen({
           <div className="h-4 w-64 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse mx-auto" />
         </div>
         <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl p-4 animate-pulse">
               <div className="h-4 w-32 bg-neutral-200 dark:bg-neutral-700 rounded mb-2" />
               <div className="h-3 w-full bg-neutral-200 dark:bg-neutral-700 rounded" />
@@ -88,8 +134,29 @@ export default function OnboardingFeedbackScreen({
     );
   }
 
+  // If no feedback data, show error state
+  if (!feedbackData) {
+    return (
+      <div className="max-w-lg mx-auto w-full pt-4 text-center">
+        <div className="text-6xl mb-4">⚠️</div>
+        <h2 className="font-display font-bold text-2xl text-neutral-900 dark:text-white mb-2">
+          Something went wrong
+        </h2>
+        <p className="text-neutral-500 mb-6">
+          We couldn't load your feedback. Please try again.
+        </p>
+        <button
+          onClick={fetchFeedback}
+          className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-lg mx-auto w-full pt-4 animate-slide-up">
+    <div className="max-w-3xl mx-auto w-full pt-4 animate-slide-up">
       {/* Header */}
       <div className="text-center mb-6">
         <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary-500 mb-2">
@@ -101,8 +168,7 @@ export default function OnboardingFeedbackScreen({
           {firstName}
         </h1>
         <p className="text-neutral-500 dark:text-neutral-400 text-sm">
-          This is your baseline. PrepMirrors will help you improve every single
-          area.
+          This is your baseline. PrepMirrors will help you improve every single area.
         </p>
       </div>
 
@@ -136,11 +202,18 @@ export default function OnboardingFeedbackScreen({
             <div className="text-3xl">{confidenceEmojis[(postConfidence ?? 1) - 1]}</div>
             <div className="flex-1">
               <p className="font-semibold text-neutral-900 dark:text-white text-sm">
-                {delta !== null && delta > 0
-                  ? `You feel ${delta} step${delta > 1 ? 's' : ''} more confident than when you started! 🎉`
-                  : delta === 0
-                    ? "Your confidence held steady — that's a good sign."
-                    : "Thanks for being honest. That's exactly what we'll work on."}
+                {isSavingConfidence ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </span>
+                ) : (
+                  delta !== null && delta > 0
+                    ? `You feel ${delta} step${delta > 1 ? 's' : ''} more confident than when you started! 🎉`
+                    : delta === 0
+                      ? "Your confidence held steady — that's a good sign."
+                      : "Thanks for being honest. That's exactly what we'll work on."
+                )}
               </p>
               <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                 Response recorded · We'll track this as you practice
@@ -170,53 +243,75 @@ export default function OnboardingFeedbackScreen({
         </p>
       </div>
 
-      {/* Question breakdown */}
+      {/* Category Scores */}
       <div className="space-y-3 mb-6">
-        {questionsFeedback.map((q, idx) => (
-          <div
-            key={idx}
-            className={`rounded-2xl border p-4 ${idx === weakestQuestionIndex
-                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                : getScoreBg(q.score)
-              }`}
-          >
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{idx === weakestQuestionIndex ? '⚠️' : '📌'}</span>
-                <span className="font-display font-semibold text-sm text-neutral-900 dark:text-white">
-                  Question {idx + 1}
-                </span>
-              </div>
-              <div className="flex items-baseline gap-1 flex-shrink-0">
-                <span className={`font-display font-bold text-2xl ${getScoreColor(q.score)}`}>
-                  {Math.round((q.score / 5) * 100)}
-                </span>
-                <span className="text-neutral-400 text-xs">/100</span>
+        {feedbackData.categoryScores.map((cat, idx) => (
+          <div key={idx} className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-neutral-900 dark:text-white">{cat.name}</h3>
+              <div className={`px-2 py-1 rounded-full text-sm font-bold ${getScoreColor(cat.score)}`}>
+                {Math.round((cat.score / 5) * 100)}/100
               </div>
             </div>
-            <p className="text-xs text-neutral-500 mb-2 line-clamp-2">{q.question_text}</p>
-            <div className="mt-2 space-y-1">
-              <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                💪 {q.key_strength}
-              </p>
-              <p className="text-xs text-amber-600 dark:text-amber-400">
-                📈 {q.key_improvement}
-              </p>
-              <p className="text-xs text-neutral-500 italic">
-                📝 "{q.reference_to_answer}"
-              </p>
-            </div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{cat.comment}</p>
+            {cat.quote && (
+              <div className="bg-neutral-100 dark:bg-neutral-700/50 rounded-lg p-2 mt-2">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 italic">
+                  💬 "{cat.quote}"
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      {/* Weakest question focus */}
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4 mb-6">
-        <p className="font-semibold text-red-700 dark:text-red-400 text-sm mb-1">
-          🎯 Your biggest opportunity
+      {/* Strengths & Areas */}
+      <div className="grid gap-3 mb-6">
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3">
+          <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-2">💪 Strengths</p>
+          <ul className="space-y-1">
+            {feedbackData.strengths.map((s, i) => (
+              <li key={i} className="text-xs text-emerald-700 dark:text-emerald-300">• {s}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3">
+          <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-2">📈 Areas to Improve</p>
+          <ul className="space-y-1">
+            {feedbackData.areasForImprovement.map((a, i) => (
+              <li key={i} className="text-xs text-amber-700 dark:text-amber-300">• {a}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Suggested Practice */}
+      <div className="bg-primary-50 dark:bg-primary-900/20 rounded-2xl p-4 mb-6 border border-primary-200 dark:border-primary-800">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-lg">🎯</span>
+          <h3 className="font-semibold text-primary-800 dark:text-primary-300">Recommended Practice</h3>
+        </div>
+        <p className="font-medium text-primary-700 dark:text-primary-300 text-sm">{feedbackData.suggested_practice.title}</p>
+        <p className="text-primary-600 dark:text-primary-400 text-sm mt-1">{feedbackData.suggested_practice.description}</p>
+        {feedbackData.suggested_practice.url && (
+          <a
+            href={feedbackData.suggested_practice.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block mt-2 text-xs text-primary-500 hover:underline"
+          >
+            📚 {feedbackData.suggested_practice.type === 'article' ? 'Read Article' :
+              feedbackData.suggested_practice.type === 'video' ? 'Watch Video' :
+                feedbackData.suggested_practice.type === 'course' ? 'Take Course' : 'Try Exercise'} →
+          </a>
+        )}
+      </div>
+
+      {/* Final Assessment */}
+      <div className="bg-neutral-100 dark:bg-neutral-800 rounded-2xl p-4 mb-6">
+        <p className="text-sm text-neutral-700 dark:text-neutral-300 italic">
+          "{feedbackData.finalAssessment}"
         </p>
-        <p className="text-red-600 dark:text-red-300 text-sm">{overallAdvice}</p>
-        <p className="text-red-500 dark:text-red-400 text-xs mt-2">💡 Try this: {suggestedPractice}</p>
       </div>
 
       {/* Key takeaway */}
@@ -225,10 +320,8 @@ export default function OnboardingFeedbackScreen({
           💡 The good news
         </p>
         <p className="text-primary-600 dark:text-primary-400 text-sm leading-relaxed">
-          Every single area you scored below 80 is directly trainable with
-          PrepMirrors. Consistent, focused practice is how candidates go from
-          good to genuinely exceptional — and that's exactly what we're here to
-          help you do.
+          Every single area you scored below 80 is directly trainable with PrepMirrors.
+          Consistent, focused practice is how candidates go from good to genuinely exceptional — and that's exactly what we're here to help you do.
         </p>
       </div>
 

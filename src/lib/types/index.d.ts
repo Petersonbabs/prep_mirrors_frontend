@@ -44,20 +44,29 @@ export enum AiProvider {
   OPENAI = 'openai'
 }
 
-export interface QuestionFeedback {
-  question_text: string;
+e// frontend/src/lib/types/feedback.ts
+
+export interface CategoryScore {
+  name: "Communication Skills" | "Technical Knowledge" | "Problem Solving" | "Cultural Fit" | "Confidence & Clarity";
   score: number;
-  key_strength: string;
-  key_improvement: string;
-  reference_to_answer: string;
+  comment: string;
+  quote?: string;
+}
+
+export interface SuggestedPractice {
+  title: string;
+  description: string;
+  url?: string;
+  type: "article" | "video" | "exercise" | "course";
 }
 
 export interface OnboardingFeedback {
   overall_score: number;
-  weakest_question_index: number;
-  questions: QuestionFeedback[];
-  overall_advice: string;
-  suggested_practice: string;
+  categoryScores: CategoryScore[];
+  strengths: string[];
+  areasForImprovement: string[];
+  suggested_practice: SuggestedPractice;
+  finalAssessment: string;
 }
 
 export interface FeedbackResponse {

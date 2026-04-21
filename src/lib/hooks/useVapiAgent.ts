@@ -38,6 +38,7 @@ export function useVapiAgent({
     const [messages, setMessages] = useState<Message[]>([]);
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [lastMessage, setLastMessage] = useState("");
+    const [startingCall, setStartingCall] = useState(false)
 
     // Format questions for Vapi variables
     const formattedQuestions = questions?.map(q => `- ${q}`).join("\n");
@@ -47,6 +48,7 @@ export function useVapiAgent({
         const onCallStart = () => {
             setCallStatus(CallStatus.ACTIVE);
             onStatusChange?.(CallStatus.ACTIVE);
+            setStartingCall(false)
         };
 
         const onCallEnd = () => {
@@ -76,7 +78,10 @@ export function useVapiAgent({
             onStatusChange?.(callStatus, { isSpeaking: false, role: 'assistant' });
         };
 
-        const onError = (error: Error) => console.error("Vapi error:", error);
+        const onError = (error: Error) => {
+            setStartingCall(false)
+            console.error("Vapi error:", error)
+        }
 
         vapi.on("call-start", onCallStart);
         vapi.on("call-end", onCallEnd);
@@ -100,21 +105,20 @@ export function useVapiAgent({
         if (callStatus === CallStatus.FINISHED && messages.length > 0) {
             onCallEnd(messages);
         }
-    }, [callStatus, messages, onCallEnd]);
+    }, [callStatus, messages]);
 
     const startCall = async () => {
-        console.log("Starting call...")
+        setStartingCall(true)
         setCallStatus(CallStatus.CONNECTING);
         onStatusChange?.(CallStatus.CONNECTING);
 
-        await vapi.start("53a0e05b-9738-427a-b018-0c96e460e917", {
+        await vapi.start(assistantId, {
             variableValues: {
                 questions: formattedQuestions,
                 name: userName,
                 jobTarget: jobTarget,
             }
         });
-        console.log("call started")
     };
 
     const endCall = () => {
@@ -127,6 +131,7 @@ export function useVapiAgent({
         isSpeaking,
         lastMessage,
         messages,
+        startingCall,
         startCall,
         endCall,
     };

@@ -17,9 +17,8 @@ interface MockInterviewScreenProps {
   firstName: string;
   jobTarget: string;
   profileId: string;
+  profile: any;
   onPreConfidenceSet: (score: number) => void;
-  tempUserId?: string;
-  onSubmitAnswers?: (answers: string[]) => Promise<void>;
 }
 
 function MockInterviewScreen({
@@ -28,9 +27,8 @@ function MockInterviewScreen({
   firstName,
   jobTarget,
   profileId,
+  profile,
   onPreConfidenceSet,
-  tempUserId,
-  onSubmitAnswers
 }: MockInterviewScreenProps) {
   const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('loading');
   const [preConfidence, setPreConfidence] = useState<number | null>(null);
@@ -42,7 +40,6 @@ function MockInterviewScreen({
   const [transcriptMessages, setTranscriptMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [questions, setQuestions] = useState<string[]>([]);
   const [loadingError, setLoadingError] = useState<string | null>(null);
-
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const userName = firstName || 'You';
@@ -107,17 +104,18 @@ function MockInterviewScreen({
 
   const handleCallEnd = async (messages: Array<{ role: string; content: string }>) => {
     // Extract user answers from messages
-    const answers = messages
-      .filter(m => m.role === "user")
-      .map(m => m.content);
-
-    setUserAnswers(answers);
+    console.log("submitting answers...")
+    const conversation = messages.map(msg => ({
+        role: msg.role === 'assistant' ? 'interviewer' : 'user',
+        content: msg.content
+    }));
+    // setTranscriptMessages(conversation);
+     const answers = conversation
+        .filter(m => m.role === 'user')
+        .map(m => m.content);
     onAnswersCollected?.(answers);
-
-    // Submit answers to backend if callback provided
-    if (onSubmitAnswers && tempUserId) {
-      await onSubmitAnswers(answers);
-    }
+    const response = await onboardingApi.submitAnswers(profileId, conversation, profile)
+    // console.log("response", response)
 
     setPhase('feedback');
   };
@@ -148,6 +146,7 @@ function MockInterviewScreen({
     isSpeaking,
     messages: vapiMessages,
     startCall,
+    startingCall,
     endCall
   } = useVapiAgent({
     assistantId: import.meta.env.VITE_VAPI_ONBOARDING_INTERVIEW_ASSISTANT_ID,
@@ -509,10 +508,11 @@ function MockInterviewScreen({
               </p>
             </div>
             <button
+              disabled={startingCall}
               onClick={startCall}
-              className="w-full py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors"
+              className="w-full py-3.5 disabled:bg-primary-500/40 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors"
             >
-              Start Interview →
+              {!startingCall ? "Start Interview →" : "Starting..."}
             </button>
           </div>
         )}

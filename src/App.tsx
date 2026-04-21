@@ -53,6 +53,7 @@ import PaymentSuccess from './pages/SuccessPage';
 import { Toaster } from 'react-hot-toast';
 import AuthCallback from './pages/AuthCallback';
 import OnboardingProvider from './pages/onboarding/components/OnboardingProvider';
+import { LemonSqueezyProvider } from './contexts/LemonSqueezyContext';
 
 export function App() {
   const { user, profile: userProfile, isLoading, refreshProfile } = useAuth();
@@ -104,7 +105,7 @@ export function App() {
   const showSidebar = !!userProfile && SIDEBAR_PATHS.includes(location.pathname);
   return (
     <div className="min-h-screen w-full bg-white dark:bg-neutral-900 transition-colors duration-300 font-body">
-      <PaddleProvider>
+      <LemonSqueezyProvider>
         <Toaster toastOptions={{
           style: {
             background: '#334155',
@@ -166,6 +167,8 @@ export function App() {
               }
             />
 
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+
 
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/paywall" element={<Paywall />} />
@@ -177,7 +180,7 @@ export function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-      </PaddleProvider>
+      </LemonSqueezyProvider>
     </div>);
 
 }
