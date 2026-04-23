@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { confidenceLevels } from "../../../data/interview";
-import { CheckIcon, Loader2 } from "lucide-react";
+import { CheckIcon, Loader2, Mic } from "lucide-react";
 import { useVapiAgent, CallStatus } from "../../../lib/hooks/useVapiAgent";
 import { onboardingApi } from "../../../lib/api/onboarding";
 
@@ -8,7 +8,7 @@ const AI_INTERVIEWER = {
   name: 'Sarah Chen',
   title: 'Senior Recruiter',
   company: 'TechCorp',
-  avatar: '👩‍💼'
+  avatar: '/ai-interviewer.png'
 };
 
 interface MockInterviewScreenProps {
@@ -106,13 +106,13 @@ function MockInterviewScreen({
     // Extract user answers from messages
     console.log("submitting answers...")
     const conversation = messages.map(msg => ({
-        role: msg.role === 'assistant' ? 'interviewer' : 'user',
-        content: msg.content
+      role: msg.role === 'assistant' ? 'interviewer' : 'user',
+      content: msg.content
     }));
     // setTranscriptMessages(conversation);
-     const answers = conversation
-        .filter(m => m.role === 'user')
-        .map(m => m.content);
+    const answers = conversation
+      .filter(m => m.role === 'user')
+      .map(m => m.content);
     onAnswersCollected?.(answers);
     const response = await onboardingApi.submitAnswers(profileId, conversation, profile)
     // console.log("response", response)
@@ -367,16 +367,16 @@ function MockInterviewScreen({
           <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-neutral-900/80 to-neutral-900" />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <div
-              className={`relative w-16 h-16 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${isAiSpeaking ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-neutral-800' : ''
+              className={`relative w-16 h-16 lg:w-32 lg:h-32 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${isAiSpeaking ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-neutral-800' : ''
                 }`}
               style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
             >
-              {AI_INTERVIEWER.avatar}
+              <img src={AI_INTERVIEWER.avatar} alt="" className="rounded-full" />
               {isAiSpeaking && (
                 <div className="absolute inset-0 rounded-full ring-4 ring-primary-400/40 animate-ping" />
               )}
             </div>
-            {isAiSpeaking && (
+            {8 > 6 && (
               <div className="flex gap-0.5 items-end h-4">
                 {[3, 6, 9, 12, 9, 6, 3].map((h, i) => (
                   <div
@@ -413,10 +413,10 @@ function MockInterviewScreen({
           <div className="absolute inset-0 bg-gradient-to-br from-neutral-700/50 to-neutral-900" />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <div
-              className={`relative w-16 h-16 rounded-full bg-neutral-600 flex items-center justify-center text-2xl transition-all duration-300 ${isUserSpeaking ? 'ring-2 ring-secondary-400 ring-offset-2 ring-offset-neutral-800' : ''
+              className={`relative w-16 h-16 lg:w-32 lg:h-32 rounded-full bg-neutral-600 flex items-center justify-center text-2xl transition-all duration-300 ${isUserSpeaking ? 'ring-2 ring-secondary-400 ring-offset-2 ring-offset-neutral-800' : ''
                 }`}
             >
-              🧑
+               <img src={"/peter-babs.jpg"} alt="" className="rounded-full" />
               {isUserSpeaking && (
                 <div className="absolute inset-0 rounded-full ring-4 ring-secondary-400/40 animate-ping" />
               )}
@@ -510,8 +510,9 @@ function MockInterviewScreen({
             <button
               disabled={startingCall}
               onClick={startCall}
-              className="w-full py-3.5 disabled:bg-primary-500/40 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors"
+              className="w-full py-3.5 disabled:bg-primary-500/40 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors flex items-center justify-center gap-4"
             >
+              <Mic />
               {!startingCall ? "Start Interview →" : "Starting..."}
             </button>
           </div>
