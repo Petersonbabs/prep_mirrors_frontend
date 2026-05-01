@@ -24,9 +24,7 @@ const Signin = () => {
         }
     }, [user, profile, isLoading, navigate]);
 
-    // If we are checking the session or if we HAVE a user but are still fetching their profile, 
-    // keep showing a loading state to prevent the login page from flashing.
-    console.log(isLoading, user, profile)
+    
     if (isLoading || (user && !profile)) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">

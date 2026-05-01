@@ -5,11 +5,17 @@ import { supabase } from '../lib/supabase';
 
 export default function AuthCallback() {
     const navigate = useNavigate();
+    console.log('Current URL:', window.location.href);
+    console.log('Origin:', window.location.origin);
+    console.log('Hash:', window.location.hash);
+    console.log('Search:', window.location.search);
 
     useEffect(() => {
         const handleAuthCallback = async () => {
             // Get the session from the URL hash/query params
             const { data: { session }, error } = await supabase.auth.getSession();
+            console.log('Session:', session);
+            console.log('Error:', error);
 
             if (error || !session?.user) {
                 console.error('Auth error:', error);
@@ -36,9 +42,9 @@ export default function AuthCallback() {
 
             // Redirect based on onboarding status
             if (!profile?.onboarding_completed || profile.subscription_tier === "free") {
-                  navigate('/onboarding');
+                navigate('/onboarding');
             } else {
-                  navigate('/dashboard');
+                navigate('/dashboard');
             }
         };
 
