@@ -231,9 +231,11 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   };
 
 
-  async function handleGenerateQuestions() {
+  async function handleImReady() {
     setGeneratingQuestions(true)
     setQuestionsGenerated(false);
+    handleNext()
+
     try {
       const payload: generateQuestionsParams = {
         profileId: user?.id as string,
@@ -308,13 +310,6 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       </div>);
 
   }
-
-  console.log("step", step)
-
-
-
-  // When entering step 13, fetch feedback
-
 
 
   return (
@@ -666,10 +661,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               </p>
             </div>
             <button
-              onClick={() => {
-                handleNext()
-                handleGenerateQuestions()
-              }}
+              onClick={handleImReady}
               className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors text-base shadow-soft">
 
               I'm ready →

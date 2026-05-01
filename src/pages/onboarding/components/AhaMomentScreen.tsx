@@ -1,3 +1,4 @@
+// AhaMomentScreen.tsx - simplified
 import { CheckIcon, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -16,60 +17,38 @@ function AhaMomentScreen({
   generatingQuestions,
   questionsGenerated = false
 }: AhaMomentScreenProps) {
-  const [simulatedSteps, setSimulatedSteps] = useState<number[]>([0]);
-  const [currentSimulatedIndex, setCurrentSimulatedIndex] = useState(0);
+  const [stepIndex, setStepIndex] = useState(0);
 
   const steps = [
-    { icon: '🔍', label: 'Collating your profile data', duration: 700 },
-    { icon: '🏢', label: 'Generating avatar companies', duration: 560 },
-    { icon: '🤖', label: 'Preparing AI interviewers', duration: 720 },
-    { icon: '📝', label: 'Generating your interview', duration: null },
-    { icon: '✅', label: 'Everything is ready!', duration: null }
+    { label: 'Collating your profile data', duration: 1200 },
+    { label: 'Generating avatar companies', duration: 2000 },
+    { label: 'Preparing AI interviewers', duration: 3000 },
+    { label: 'Generating your interview', duration: null },
+    { label: 'Everything is ready!', duration: null }
   ];
 
+  // Auto-advance through first 3 steps
   useEffect(() => {
-    if (currentSimulatedIndex < steps.length - 2) {
+    if (stepIndex < steps.length - 2) {
       const timer = setTimeout(() => {
-        setCurrentSimulatedIndex(prev => prev + 1);
-        setSimulatedSteps(prev => [...prev, prev.length]);
-      }, steps[currentSimulatedIndex].duration as number);
-
+        setStepIndex(prev => prev + 1);
+      }, steps[stepIndex].duration as number);
       return () => clearTimeout(timer);
     }
-  }, [currentSimulatedIndex, steps]);
+  }, [stepIndex, steps]);
 
-  const getStepStatus = (index: number) => {
-    if (index === steps.length - 1) {
-      if (questionsGenerated && !generatingQuestions) {
-        return 'done';
-      }
-      return 'pending';
-    }
+  // When first 3 steps are done, show generating step as active
+  const isGenerating = stepIndex === steps.length - 2;
+  const isReady = questionsGenerated && !generatingQuestions;
 
-    if (index === steps.length - 2) {
-      if (generatingQuestions) {
-        return 'active';
-      }
-      if (questionsGenerated) {
-        return 'done';
-      }
-      if (currentSimulatedIndex >= index) {
-        return 'active';
-      }
-      return 'pending';
+  // Auto-advance to last step when questions are generated
+  useEffect(() => {
+    if (isReady && stepIndex === steps.length - 2) {
+      setStepIndex(prev => prev + 1);
     }
+  }, [isReady, stepIndex]);
 
-    if (index <= currentSimulatedIndex) {
-      return 'done';
-    }
-    if (index === currentSimulatedIndex + 1) {
-      return 'active';
-    }
-    return 'pending';
-  };
-
-  const allDone = questionsGenerated && !generatingQuestions;
-  console.log("generatingQuestions", generatingQuestions)
+  const allDone = stepIndex === steps.length - 1;
 
   return (
     <div className="max-w-lg mx-auto w-full pt-8 flex flex-col items-center">
@@ -90,9 +69,9 @@ function AhaMomentScreen({
       {/* Timeline */}
       <div className="w-full space-y-3 mb-10">
         {steps.map((s, i) => {
-          const status = getStepStatus(i);
-          const isActive = status === 'active';
-          const isDone = status === 'done';
+          const isDone = i < stepIndex;
+          const isActive = i === stepIndex;
+
           return (
             <div
               key={i}
@@ -113,15 +92,15 @@ function AhaMomentScreen({
               >
                 {isDone ? (
                   <CheckIcon className="w-5 h-5 text-white" />
-                ) : isActive ? (
-                  // Show spinner only on the "Generating your interview" step
-                  i === steps.length - 2 && generatingQuestions ? (
-                    <Loader2 className="w-5 h-5 text-white animate-spin" />
-                  ) : (
-                    <span>{s.icon}</span>
-                  )
+                ) : isActive && i === steps.length - 2 && generatingQuestions ? (
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
                 ) : (
-                  <span>{s.icon}</span>
+                  <span>{
+                    i === 0 ? '🔍' :
+                      i === 1 ? '🏢' :
+                        i === 2 ? '🤖' :
+                          i === 3 ? '📝' : '✅'
+                  }</span>
                 )}
               </div>
 
@@ -158,10 +137,10 @@ function AhaMomentScreen({
         })}
       </div>
 
-      {/* Ready button - only shows when questions are generated */}
+      {/* Ready button */}
       {allDone && (
         <div className="w-full animate-slide-up">
-          <div className="bg-gradient-to-r from-primary-500 to-secondary-500 rounded-2xl p-5 text-white text-center mb-4">
+          <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-2xl p-5 text-white text-center mb-4">
             <p className="text-2xl mb-1">🎉</p>
             <p className="font-display font-bold text-lg">
               Your interview is ready!
