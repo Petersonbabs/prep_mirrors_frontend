@@ -5,6 +5,7 @@ import { Theme } from '../App';
 import { NotificationDropdown } from './NotificationDropdown';
 import { GetPlusBadge } from './GetPlusBadge';
 import { useAuth } from '../lib/hooks/useAuth';
+import { useDashboardData } from '../lib/hooks/useDashboardData';
 
 interface NavbarProps {
   theme: Theme;
@@ -22,6 +23,7 @@ export function Navbar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const { subscription, loading } = useDashboardData();
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
@@ -52,7 +54,7 @@ export function Navbar({
               alt="Prep Mirrors"
               className="w-8 h-8 rounded-lg" />
 
-            <span className="font-display font-bold text-lg text-neutral-900 dark:text-white">
+            <span className="font-display font-bold text-lg text-neutral-900 dark:text-white hidden sm:inline">
               Prep<span className="text-primary-500">Mirrors</span>
             </span>
           </Link>
@@ -107,12 +109,16 @@ export function Navbar({
           }
 
           {/* Center: Get Plus Badge (when logged in) */}
-          {isLoggedIn &&
+          {isLoggedIn && subscription?.tier !== "pro" ? (
+
             <div
-              className={`hidden md:flex items-center justify-center ${showSidebar ? 'flex-1' : ''}`}>
+              className={`flex items-center justify-center ${showSidebar ? 'flex-1' : ''}`}>
 
               <GetPlusBadge />
             </div>
+          ) : (
+            <div></div>
+          )
           }
 
           {/* Spacer when sidebar is showing but no center badge needed */}
@@ -122,18 +128,13 @@ export function Navbar({
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
-            {/* Get Plus Badge - Mobile (compact) */}
-            {isLoggedIn &&
-              <div className="md:hidden">
-                <GetPlusBadge compact />
-              </div>
-            }
+
 
             {/* Theme toggle */}
             <div className="relative">
               <button
                 onClick={() => setThemeMenuOpen(!themeMenuOpen)}
-                className="p-2 rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                className="p-2 hidden md:block rounded-lg text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
                 aria-label="Toggle theme">
 
                 <ThemeIcon className="w-4 h-4" />
@@ -166,7 +167,7 @@ export function Navbar({
                 <NotificationDropdown />
                 <button
                   onClick={() => navigate('dashboard/account')}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors">
+                  className={`${subscription?.tier === "pro" ? "flex" : "hidden md:flex"} items-center gap-2 px-3 py-1.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors`}>
 
                   <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold">
                     {userProfile?.name?.charAt(0)?.toUpperCase() || 'U'}

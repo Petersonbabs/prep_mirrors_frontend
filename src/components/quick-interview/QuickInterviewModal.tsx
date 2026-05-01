@@ -62,9 +62,6 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [avgScore, setAvgScore] = useState(0);
 
-  console.log(import.meta.env.VITE_API_URL)
-
-  // Voice interview states
   const [isCallActive, setIsCallActive] = useState(false);
   const [callStatus, setCallStatus] = useState('');
   const [userTranscript, setUserTranscript] = useState('');

@@ -74,3 +74,35 @@ export interface FeedbackResponse {
   data?: OnboardingFeedback;
   error?: string;
 }
+
+export interface UserProfile {
+  name: string;
+  targetRole: string;
+  level: string;
+  goal: string;
+  hiring_timeline: string;
+  last_onboarding_step?: number;
+  pre_first_interview_confidence?: number | null;
+  post_first_interview_confidence?: number | null;
+  onboarding_completed?: boolean;
+  email?: string;
+  plan_type?: 'free' | 'pro';
+  subscription_status?: 'active' | 'trialing' | 'cancelled' | 'expired';
+  subscription_tier?: 'free' | 'pro'
+  trial_end_date?: string | null;
+  has_seen_walkthrough?: boolean;
+  next_billing_date?: string | null;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  role: string;
+  salary: string;
+  jobType: string;
+  location: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  logo: string;
+  profile_id: string;
+  created_at: string;
+}

@@ -6,7 +6,7 @@ function Faqs() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
  
   return (
-    <section className="py-24 bg-white dark:bg-neutral-900">
+    <section id="faqs" className="py-24 bg-white dark:bg-neutral-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="font-display font-bold text-4xl text-neutral-900 dark:text-white mb-4">

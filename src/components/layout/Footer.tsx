@@ -77,7 +77,7 @@ const Footer = () => {
                         <ul className="space-y-2 text-sm">
                             <UnderDevelopmentComponent>
                                 <li>
-                                    <Link to="/help-center" className="hover:text-white transition-colors">
+                                    <Link to="/support" className="hover:text-white transition-colors">
                                         Help Center
                                     </Link>
                                 </li>

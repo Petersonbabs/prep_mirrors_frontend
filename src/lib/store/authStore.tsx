@@ -1,24 +1,9 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
+import { UserProfile } from '../types';
 
-export interface UserProfile {
-    name: string;
-    targetRole: string;
-    level: string;
-    goal: string;
-    hiring_timeline: string;
-    last_onboarding_step?: number;
-    pre_first_interview_confidence?: number | null;
-    post_first_interview_confidence?: number | null;
-    onboarding_completed?: boolean;
-    email?: string;
-    plan_type?: 'free' | 'pro';
-    subscription_status?: 'active' | 'trialing' | 'cancelled' | 'expired';
-    subscription_tier?: 'free' | 'pro'
-    trial_end_date?: string | null;
-    next_billing_date?: string | null;
-}
+
 
 interface AuthContextType {
     session: Session | null;
@@ -71,7 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     subscription_status: data.subscription_status || 'free',
                     trial_end_date: data.trial_end_date,
                     next_billing_date: data.next_billing_date,
-                    subscription_tier: data.subscription_tier
+                    subscription_tier: data.subscription_tier,
+                    has_seen_walkthrough: data.has_seen_walkthrough
                 });
             } else {
                 setProfile(null);

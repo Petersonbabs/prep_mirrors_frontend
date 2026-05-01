@@ -10,6 +10,9 @@ import { CoachPage } from "../../pages/(dashboard)/CoachPage"
 import { ProgressPage } from "../../pages/(dashboard)/ProgressPage"
 import { AccountPage } from "../../pages/(dashboard)/AccountPage"
 import { SettingsPage } from "../../pages/(dashboard)/SettingsPage"
+import BillingPage from "../../pages/(dashboard)/BillingPage"
+import { SupportPage } from "../../pages/(public)/support"
+import { DashboardSupportPage } from "../../pages/(dashboard)/support"
 
 const DashboardLayout = () => {
     const [showWalkthrough, setShowWalkthrough] = useState(false);
@@ -62,8 +65,6 @@ const DashboardLayout = () => {
                         (!isLoading && !user) ? <Navigate to="/signin" replace /> :
                             <DashboardPage
                                 onStartInterview={handleStartInterview}
-                                onNavigate={(page) => navigate(`/${page}`)}
-                                showWalkthrough={showWalkthrough}
                                 onWalkthroughComplete={handleWalkthroughComplete} />
                     } />
 
@@ -129,9 +130,10 @@ const DashboardLayout = () => {
                     } />
 
                 <Route path="/progress" element={<ProgressPage />} />
-
+                <Route path="/billing" element={<BillingPage />} />
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/support" element={<DashboardSupportPage />} />
             </Routes>
         </div>
     )

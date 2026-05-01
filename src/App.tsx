@@ -14,6 +14,7 @@ import { AuthPage } from './pages/AuthPage';
 import { AdminPage } from './pages/AdminPage';
 import { PricingPage } from './pages/PricingPage';
 import Signin from './pages/Signin';
+import { Toaster } from 'sonner';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type Page = 'dashboard' | 'progress' | 'pricing' | 'account' | 'settings';
@@ -39,18 +40,18 @@ const SIDEBAR_PATHS = [
   '/dashboard/coach',
   '/dashboard/progress',
   '/dashboard/account',
-  '/pricing',
-  '/dashboard/settings'];
+  '/dashboard/billing',
+  '/dashboard/settings',
+  '/dashboard/support'
+];
 
 // Supabase client is imported from ./lib/supabase
 
 import { useAuth } from './lib/hooks/useAuth';
 import PublicLayout from './components/provider/PublicLayout';
 import DashboardLayout from './components/provider/DashboardLayout';
-import PaddleProvider from './contexts/PaddleContext';
 import Paywall from './components/ui/Payment/Paywall';
 import PaymentSuccess from './pages/SuccessPage';
-import { Toaster } from 'react-hot-toast';
 import AuthCallback from './pages/AuthCallback';
 import OnboardingProvider from './pages/onboarding/components/OnboardingProvider';
 import { LemonSqueezyProvider } from './contexts/LemonSqueezyContext';
@@ -106,12 +107,11 @@ export function App() {
   return (
     <div className="min-h-screen w-full bg-white dark:bg-neutral-900 transition-colors duration-300 font-body">
       <LemonSqueezyProvider>
-        <Toaster toastOptions={{
-          style: {
-            background: '#334155',
-            color: '#fff'
-          }
-        }} />
+        <Toaster
+          closeButton
+          richColors
+          position='top-right'
+        />
         {showNavbar &&
           <Navbar
             theme={theme}

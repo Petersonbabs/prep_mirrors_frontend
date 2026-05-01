@@ -5,7 +5,8 @@ import {
   TrendingUpIcon,
   CreditCardIcon,
   UserIcon,
-  SettingsIcon
+  SettingsIcon,
+  HelpCircle
 } from
   'lucide-react';
 import { useAuth } from '../lib/hooks/useAuth';
@@ -34,7 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     id: 'pricing',
     label: 'Billing',
-    path: '/pricing',
+    path: '/dashboard/billing',
     icon: <CreditCardIcon className="w-4 h-4" />
   },
   {
@@ -48,7 +49,15 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Settings',
     path: '/dashboard/settings',
     icon: <SettingsIcon className="w-4 h-4" />
-  }];
+  },
+
+{
+    id: 'support',
+    label: 'Help & Support',
+    path: '/dashboard/support',
+    icon: <HelpCircle className="w-4 h-4" />
+  }
+];
 
 export function Sidebar({ }: SidebarProps) {
   const { profile: userProfile } = useAuth();

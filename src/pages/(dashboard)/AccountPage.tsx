@@ -13,6 +13,9 @@ import {
 import { useAuth } from '../../lib/hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { useDashboardData } from '../../lib/hooks/useDashboardData';
+import { subscriptionApi } from '../../lib/api/subscription';
+import { subscription as pricing } from '../../data/pricing'
 
 // Replace with your real Paystack public key from https://dashboard.paystack.com
 type ActiveSection = 'profile' | 'billing' | 'security' | 'notifications';
@@ -166,48 +169,69 @@ function ProfileSection() {
       </div>
     </div>);
 }
+
+
+
 function BillingSection() {
-  const { profile, user, refreshProfile } = useAuth();
-  const [isActionLoading, setIsActionLoading] = useState(false);
+  const { user } = useAuth();
+  const { subscription, loading } = useDashboardData();
+  const [loadingPortal, setLoadingPortal] = useState(false);
+  const [loadingUpgrade, setLoadingUpgrade] = useState(false);
+  const [loadingCancel, setLoadingCancel] = useState(false);
 
-  const planType = profile?.plan_type || 'free';
-  const status = profile?.subscription_status || 'free';
-  const trialEnd = profile?.trial_end_date;
-  const nextBilling = profile?.next_billing_date;
+  const isPro = subscription?.tier === 'pro';
+  const isTrialing = subscription?.status === 'trialing';
+  const trialEndsAt = subscription?.trialEndsAt ? new Date(subscription.trialEndsAt) : null;
+  const daysRemaining = trialEndsAt ? Math.ceil((trialEndsAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-  const calculateDaysRemaining = (endDate?: string | null) => {
-    if (!endDate) return 0;
-    const diff = new Date(endDate).getTime() - new Date().getTime();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  };
+  const handleManageSubscription = async (cancel?: boolean) => {
+    if (!user?.id) return;
+    if (cancel) {
+      setLoadingCancel(true)
+    } else {
+      setLoadingPortal(true);
+    }
 
-  const daysRemaining = calculateDaysRemaining(trialEnd);
-
-  const handleCancel = async () => {
-    if (!user) return;
-    if (!confirm('Are you sure you want to cancel? This action cannot be undone.')) return;
-
-    setIsActionLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ subscription_status: 'cancelled' })
-        .eq('id', user.id);
-
-      if (error) throw error;
-      await refreshProfile();
-      alert('Subscription cancelled successfully.');
-    } catch (err) {
-      console.error('Error cancelling:', err);
-      alert('Failed to cancel. Please try again.');
+      const data = await subscriptionApi.getPortalUrl(user?.id)
+      if (data.url) {
+        window.open(data.url, '_blank');
+      } else {
+        console.error('No URL returned');
+      }
+    } catch (error) {
+      console.error('Error getting portal URL:', error);
     } finally {
-      setIsActionLoading(false);
+      setLoadingCancel(false)
+      setLoadingPortal(false);
     }
   };
 
-  const handleUpgrade = () => {
-    alert('Redirecting to secure checkout...');
+  const handleUpgrade = async () => {
+    if (!user?.id) return;
+    setLoadingUpgrade(true);
+    try {
+
+      const variantId = import.meta.env.VITE_LEMONSQUEEZY_MONTHLY_VARIANT_ID;
+      const data = await subscriptionApi.upgrade(user?.id, variantId)
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+    } finally {
+      setLoadingUpgrade(false);
+    }
   };
+
+  if (loading) {
+    return <div className='flex h-full items-center justify-center'>
+      <Loader2 className="w-8 h-8  text-primary-500 animate-spin" />
+    </div>
+  }
 
   return (
     <div>
@@ -215,15 +239,15 @@ function BillingSection() {
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           Billing & Subscription
         </h2>
-        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${planType === 'pro'
+        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isPro
           ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
           : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400'
           }`}>
-          {status === 'trialing' ? '7-Day Trial' : `${planType} Plan`}
+          {isTrialing ? `${pricing.pro.trialDays}-Day Trial` : isPro ? 'Pro Plan' : 'Free Plan'}
         </span>
       </div>
 
-      {status === 'trialing' && (
+      {isTrialing && trialEndsAt && daysRemaining > 0 && (
         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white mb-6 shadow-lg shadow-indigo-200 dark:shadow-none">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -237,26 +261,26 @@ function BillingSection() {
           <div className="w-full bg-white/20 rounded-full h-2 mb-4">
             <div
               className="bg-white h-full rounded-full transition-all duration-1000"
-              style={{ width: `${(daysRemaining / 7) * 100}%` }}
+              style={{ width: `${(daysRemaining / pricing.pro.trialDays) * 100}%` }}
             />
           </div>
           <p className="text-indigo-100 text-xs">
-            Your trial will end on {trialEnd ? new Date(trialEnd).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}.
+            Your trial will end on {trialEndsAt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
             Upgrade to Pro now to keep all features!
           </p>
         </div>
       )}
 
-      {planType === 'pro' && status === 'active' && (
+      {isPro && !isTrialing && (
         <div className="bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-700 rounded-2xl p-5 mb-6">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
               <CreditCardIcon className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">Next billing date</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">Active subscription</p>
               <p className="font-bold text-neutral-900 dark:text-white">
-                {nextBilling ? new Date(nextBilling).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'} · $19/mo
+                ${pricing.pro.price.monthly}/month · Unlimited interviews
               </p>
             </div>
           </div>
@@ -267,10 +291,11 @@ function BillingSection() {
         <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-widest">Plan Features</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { label: 'Unlimited Interviews', included: planType === 'pro' || status === 'trialing' },
-            { label: 'AI Real-time Coaching', included: planType === 'pro' || status === 'trialing' },
+            { label: 'Unlimited Interviews', included: isPro || isTrialing },
+            { label: 'AI Real-time Coaching', included: isPro || isTrialing },
             { label: 'Detailed Performance Reports', included: true },
-            { label: 'All Company Blueprints', included: planType === 'pro' || status === 'trialing' },
+            { label: 'All Company Blueprints', included: isPro || isTrialing },
+            { label: 'Cancel anytime', included: true },
           ].map((feature) => (
             <div key={feature.label} className="flex items-center gap-3">
               <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${feature.included ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
@@ -285,26 +310,29 @@ function BillingSection() {
       </div>
 
       <div className="flex gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-700">
-        {planType === 'free' && status !== 'trialing' ? (
+        {!isPro && !isTrialing ? (
           <button
             onClick={handleUpgrade}
-            disabled={isActionLoading}
-            className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100 dark:shadow-none disabled:opacity-50">
-            Upgrade to Pro
+            disabled={loadingUpgrade}
+            className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100 dark:shadow-none disabled:opacity-50"
+          >
+            {loadingUpgrade ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : `Start ${subscription}}-Day Free Trial`}
           </button>
         ) : (
           <>
             <button
-              onClick={() => alert('Opening billing portal...')}
-              disabled={isActionLoading}
-              className="flex-1 px-4 py-3 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50">
-              Manage Billing
+              onClick={() => handleManageSubscription()}
+              disabled={loadingPortal}
+              className="flex-1 px-4 py-3 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 font-bold rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
+            >
+              {loadingPortal ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Manage Billing'}
             </button>
             <button
-              onClick={handleCancel}
-              disabled={isActionLoading}
-              className="px-4 py-3 text-red-500 font-medium hover:text-red-600 transition-colors disabled:opacity-50">
-              {status === 'trialing' ? 'Cancel Trial' : 'Cancel Plan'}
+              onClick={() => handleManageSubscription(true)}
+              disabled={loadingCancel}
+              className="px-4 py-3 text-red-500 font-medium hover:text-red-600 transition-colors disabled:opacity-50"
+            >
+              {loadingCancel ? <Loader2 className="w-4 h-4 animate-spin" /> : (isTrialing ? 'Cancel Trial' : 'Cancel Plan')}
             </button>
           </>
         )}
@@ -313,12 +341,19 @@ function BillingSection() {
       <div className="mt-10">
         <h3 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4">Billing History</h3>
         <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-100 dark:border-neutral-700 overflow-hidden text-center py-8">
-          <p className="text-neutral-500 dark:text-neutral-400 text-sm italic">No billing history available yet.</p>
+          <p className="text-neutral-500 dark:text-neutral-400 text-sm italic">
+            View your billing history in the{' '}
+            <button onClick={() => handleManageSubscription()} className="text-indigo-500 hover:underline">
+              billing portal
+            </button>
+          </p>
         </div>
       </div>
     </div>
   );
 }
+
+
 function SecuritySection() {
   return (
     <div>

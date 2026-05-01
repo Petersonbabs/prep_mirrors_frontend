@@ -4,7 +4,7 @@ import { useAuth } from './useAuth';
 import { Subscription, subscriptionApi } from '../api/subscription';
 
 export function useDashboardData() {
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const [subscription, setSubscription] = useState<Subscription | null>(null);
     const [loading, setLoading] = useState(true);
     const [streak, setStreak] = useState(4);
@@ -15,7 +15,6 @@ export function useDashboardData() {
         badgesEarned: 3,
     });
 
-    console.log(subscription)
 
     useEffect(() => {
         if (user?.id) {
@@ -25,8 +24,7 @@ export function useDashboardData() {
 
     const loadSubscription = async () => {
         const subscription = await subscriptionApi.getStatus(user?.id as string);
-        console.log(subscription)
-        setSubscription(subscription as any ?? null);
+        setSubscription(subscription.data as any ?? null);
         setLoading(false);
     };
 

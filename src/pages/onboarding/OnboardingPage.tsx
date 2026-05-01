@@ -5,7 +5,7 @@ import {
   CheckIcon,
 } from
   'lucide-react';
-import { UserProfile } from '../../lib/store/authStore';
+// import { UserProfile } from '../../lib/store/authStore';
 import { supabase } from '../../lib/supabase';
 import ProgressBar from './components/ProgressBar';
 import OptionCard from './components/OptionCard';
@@ -21,6 +21,7 @@ import { useAuth } from '../../lib/hooks/useAuth';
 import { generateQuestionsParams, onboardingApi } from '../../lib/api/onboarding';
 import toast from 'react-hot-toast';
 import OnboardingFeedbackScreen from './components/FeedbackScreen';
+import { UserProfile } from '../../lib/types';
 
 interface OnboardingPageProps {
   onComplete: () => void;
@@ -122,7 +123,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
     };
     if (step > 0) updateStep();
   }, [step]);
-  
+
 
   if (isLoading) {
     return <OnboardingSkeleton />;
@@ -134,7 +135,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
   const totalProgressSteps = 6;
   const navigate = (dir: 'forward' | 'back') => {
     const currentProfile: UserProfile = {
-      name: nameInput || prefilledName || 'Friend',
+      name: nameInput || prefilledName || "",
       targetRole: selectedRole || prefilledJob || '',
       level: selectedLevel || '',
       goal: selectedChallenge || '',
@@ -310,7 +311,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
 
   console.log("step", step)
 
-  
+
 
   // When entering step 13, fetch feedback
 
@@ -420,7 +421,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               value={nameInput}
               onChange={(e) => {
                 setNameInput(e.target.value);
-                setProfile((p) => ({
+                setProfile((p: any) => ({
                   ...p,
                   name: e.target.value
                 }));
@@ -467,7 +468,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
                   selected={selectedRole === role.label}
                   onSelect={() => {
                     setSelectedRole(role.label);
-                    setProfile((p) => ({
+                    setProfile((p: any) => ({
                       ...p,
                       targetRole: role.label
                     }));
@@ -506,7 +507,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
                   selected={selectedLevel === level.id}
                   onSelect={() => {
                     setSelectedLevel(level.id);
-                    setProfile((p) => ({
+                    setProfile((p: any) => ({
                       ...p,
                       level: level.id
                     }));
@@ -545,7 +546,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
                   selected={selectedChallenge === challenge.id}
                   onSelect={() => {
                     setSelectedChallenge(challenge.id);
-                    setProfile((p) => ({
+                    setProfile((p: any) => ({
                       ...p,
                       goal: challenge.id
                     }));

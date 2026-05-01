@@ -26,8 +26,6 @@ export const subscription = {
             'Full question bank access',
             'Detailed performance analytics',
             'Interview script templates',
-            // '50+ company scenarios',
-            // 'Voice analysis',
             'Priority support',
             "Cancel anytime"
         ],
