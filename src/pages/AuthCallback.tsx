@@ -1,21 +1,14 @@
-// src/pages/AuthCallback.tsx
+// frontend/src/pages/AuthCallback.tsx
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 export default function AuthCallback() {
     const navigate = useNavigate();
-    console.log('Current URL:', window.location.href);
-    console.log('Origin:', window.location.origin);
-    console.log('Hash:', window.location.hash);
-    console.log('Search:', window.location.search);
 
     useEffect(() => {
-        const handleAuthCallback = async () => {
-            // Get the session from the URL hash/query params
+        const handleCallback = async () => {
             const { data: { session }, error } = await supabase.auth.getSession();
-            console.log('Session:', session);
-            console.log('Error:', error);
 
             if (error || !session?.user) {
                 console.error('Auth error:', error);
@@ -25,30 +18,53 @@ export default function AuthCallback() {
 
             const userId = session.user.id;
             const userEmail = session.user.email;
+            const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name;
+            const userAvatar = session.user.user_metadata?.avatar_url; // Google profile picture
 
-            // Check if profile exists and onboarding is completed
+            // Check if profile exists
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
-                .select("*")
+                .select('*')
                 .eq('id', userId)
                 .single();
 
-            if (profileError) {
-                console.error('Error fetching profile:', profileError);
+            if (profileError || !profile) {
+                // Create new profile with avatar
+                const { error: insertError } = await supabase
+                    .from('profiles')
+                    .insert({
+                        id: userId,
+                        email: userEmail,
+                        full_name: userName,
+                        avatar_url: userAvatar, // Save the profile picture
+                        onboarding_completed: false,
+                    });
+
+                if (insertError) {
+                    console.error('Error creating profile:', insertError);
+                }
+
                 navigate('/onboarding');
                 return;
             }
 
+            // Update avatar if it changed
+            if (profile.avatar_url !== userAvatar) {
+                await supabase
+                    .from('profiles')
+                    .update({ avatar_url: userAvatar })
+                    .eq('id', userId);
+            }
 
             // Redirect based on onboarding status
-            if (!profile?.onboarding_completed || profile.subscription_tier === "free") {
+            if (!profile?.onboarding_completed) {
                 navigate('/onboarding');
             } else {
                 navigate('/dashboard');
             }
         };
 
-        handleAuthCallback();
+        handleCallback();
     }, [navigate]);
 
     return (

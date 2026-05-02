@@ -10,6 +10,7 @@ import {
 } from
   'lucide-react';
 import { useAuth } from '../lib/hooks/useAuth';
+import { ProfileAvatar } from './ui/ProfileAvatar';
 
 interface SidebarProps {
 }
@@ -51,7 +52,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: <SettingsIcon className="w-4 h-4" />
   },
 
-{
+  {
     id: 'support',
     label: 'Help & Support',
     path: '/dashboard/support',
@@ -112,9 +113,15 @@ export function Sidebar({ }: SidebarProps) {
             onClick={() => navigate('dashboard/account')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
 
-            <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
-            </div>
+            {
+              userProfile?.avatar_url ? (
+                <ProfileAvatar avatarUrl={userProfile?.avatar_url} size='sm'/>
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                  {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+              )
+            }
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
                 {userProfile.name || 'User'}

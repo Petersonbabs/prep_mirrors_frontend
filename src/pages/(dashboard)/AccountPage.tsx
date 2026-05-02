@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDashboardData } from '../../lib/hooks/useDashboardData';
 import { subscriptionApi } from '../../lib/api/subscription';
 import { subscription as pricing } from '../../data/pricing'
+import { ProfileAvatar } from '../../components/ui/ProfileAvatar';
 
 // Replace with your real Paystack public key from https://dashboard.paystack.com
 type ActiveSection = 'profile' | 'billing' | 'security' | 'notifications';
@@ -105,6 +106,20 @@ function ProfileSection() {
   return (
     <div>
       <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Profile Settings</h2>
+
+      <div className="flex items-center gap-6 mb-8 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl">
+        <ProfileAvatar
+          avatarUrl={userProfile?.avatar_url}
+          name={formData.fullName}
+          size="xl"
+          editable
+          // onUpload={handleAvatarUpload}
+        />
+        <div>
+          <p className="font-medium text-neutral-900 dark:text-white">Profile Picture</p>
+        </div>
+      </div>
+
       <div className="space-y-5">
         <div>
           <label

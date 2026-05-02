@@ -71,6 +71,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
     post_first_interview_confidence: userProfile?.post_first_interview_confidence || null,
     onboarding_completed: userProfile?.onboarding_completed || false,
     last_onboarding_step: userProfile?.last_onboarding_step || 0,
+    avatar_url: userProfile?.avatar_url
 
   });
   const [nameInput, setNameInput] = useState(userProfile?.name || '');
@@ -144,7 +145,8 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       post_first_interview_confidence: postConfidenceScore as number,
       onboarding_completed: false,
       last_onboarding_step: step,
-      subscription_tier: 'free'
+      subscription_tier: 'free',
+      avatar_url: userProfile?.avatar_url as string
     };
 
     syncProfileToSupabase(currentProfile)
@@ -178,6 +180,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
             last_onboarding_step: step,
             hiring_timeline: profileData.hiring_timeline,
             email: user.email || profileData.email,
+
           });
 
         if (error) throw error;
@@ -197,7 +200,8 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       hiring_timeline: selectedTimeline || "",
       pre_first_interview_confidence: preConfidenceScore as number,
       post_first_interview_confidence: postConfidenceScore as number,
-      onboarding_completed: true
+      onboarding_completed: true,
+      avatar_url: userProfile?.avatar_url as string
     };
     await syncProfileToSupabase(finalProfile);
     onComplete();
@@ -215,7 +219,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       post_first_interview_confidence: postConfidenceScore as number,
       onboarding_completed: true,
       last_onboarding_step: step,
-
+      avatar_url: userProfile?.avatar_url as string
     };
     await syncProfileToSupabase(finalProfile);
     onComplete();
@@ -304,7 +308,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
           onPreConfidenceSet={setPreConfidenceScore}
           jobTarget={profile.targetRole as string}
           profileId={user?.id as string}
-          profile={profile}
+          profile={userProfile as UserProfile}
         />
 
       </div>);

@@ -3,6 +3,9 @@ import { confidenceLevels } from "../../../data/interview";
 import { CheckIcon, Loader2, Mic } from "lucide-react";
 import { useVapiAgent, CallStatus } from "../../../lib/hooks/useVapiAgent";
 import { onboardingApi } from "../../../lib/api/onboarding";
+import { UserProfile } from "../../../lib/types";
+import { getInitials } from "../../../utils/utils";
+import Timer from "../../../components/ui/Timer";
 
 const AI_INTERVIEWER = {
   name: 'Sarah Chen',
@@ -17,7 +20,7 @@ interface MockInterviewScreenProps {
   firstName: string;
   jobTarget: string;
   profileId: string;
-  profile: any;
+  profile: UserProfile;
   onPreConfidenceSet: (score: number) => void;
 }
 
@@ -30,9 +33,8 @@ function MockInterviewScreen({
   profile,
   onPreConfidenceSet,
 }: MockInterviewScreenProps) {
-  const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('loading');
+  const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('interview');
   const [preConfidence, setPreConfidence] = useState<number | null>(null);
-  const [sessionTime, setSessionTime] = useState(0);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [callActive, setCallActive] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
@@ -40,9 +42,10 @@ function MockInterviewScreen({
   const [transcriptMessages, setTranscriptMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [questions, setQuestions] = useState<string[]>([]);
   const [loadingError, setLoadingError] = useState<string | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const transcriptRef = useRef<HTMLDivElement>(null);
   const userName = firstName || 'You';
+  const [processingAnswer, setProcessingAnswer] = useState(false)
 
 
 
@@ -51,7 +54,7 @@ function MockInterviewScreen({
     const fetchQuestions = async () => {
       if (!profileId) {
         setLoadingError("Profile ID not found");
-        setPhase('pre-rating');
+        setPhase('interview');
         return;
       }
 
@@ -59,15 +62,15 @@ function MockInterviewScreen({
         const response = await onboardingApi.getMyOnboardingQuestions(profileId);
         if (response.success && response.questions) {
           setQuestions(response.questions);
-          setPhase('pre-rating');
+          setPhase('interview');
         } else {
           setLoadingError("Failed to load interview questions");
-          setPhase('pre-rating');
+          setPhase('interview');
         }
       } catch (error) {
         console.error("Error fetching questions:", error);
         setLoadingError("Failed to load interview questions");
-        setPhase('pre-rating');
+        setPhase('interview');
       }
     };
 
@@ -75,14 +78,6 @@ function MockInterviewScreen({
   }, [profileId]);
 
   // Session timer
-  useEffect(() => {
-    if (phase === 'interview') {
-      timerRef.current = setInterval(() => setSessionTime((t) => t + 1), 1000);
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [phase]);
 
   // Auto-scroll transcript on new messages
   useEffect(() => {
@@ -103,21 +98,24 @@ function MockInterviewScreen({
   };
 
   const handleCallEnd = async (messages: Array<{ role: string; content: string }>) => {
-    // Extract user answers from messages
-    console.log("submitting answers...")
+
     const conversation = messages.map(msg => ({
       role: msg.role === 'assistant' ? 'interviewer' : 'user',
       content: msg.content
     }));
-    // setTranscriptMessages(conversation);
     const answers = conversation
       .filter(m => m.role === 'user')
       .map(m => m.content);
     onAnswersCollected?.(answers);
-    const response = await onboardingApi.submitAnswers(profileId, conversation, profile)
-    // console.log("response", response)
-
-    setPhase('feedback');
+    setProcessingAnswer(true)
+    try {
+      await onboardingApi.submitAnswers(profileId, conversation, profile)
+      setPhase('feedback');
+    } catch (error) {
+      console.log(error)
+    } finally {
+      setProcessingAnswer(false)
+    }
   };
 
   const handleStatusChange = (status: CallStatus, speaking?: { isSpeaking: boolean; role?: string }) => {
@@ -133,7 +131,7 @@ function MockInterviewScreen({
       if (speaking.role === 'assistant') {
         setIsAiSpeaking(speaking.isSpeaking);
         setIsUserSpeaking(false);
-      } else if (speaking.role === 'user') {
+      } else {
         setIsUserSpeaking(speaking.isSpeaking);
         setIsAiSpeaking(false);
       }
@@ -143,8 +141,9 @@ function MockInterviewScreen({
   // VAPI HOOK
   const {
     callStatus,
-    isSpeaking,
+    isSpeaking: agentIsSpeaking,
     messages: vapiMessages,
+    isUserSpeaking: agentIsUserSpeaking,
     startCall,
     startingCall,
     endCall
@@ -158,6 +157,7 @@ function MockInterviewScreen({
     onTranscriptUpdate: handleTranscriptUpdate
   });
 
+
   useEffect(() => {
     if (callStatus === CallStatus.ACTIVE) {
       setCallActive(true);
@@ -167,18 +167,17 @@ function MockInterviewScreen({
     }
   }, [callStatus]);
 
-  // Update speaking indicators based on isSpeaking
-  useEffect(() => {
-    if (isSpeaking) {
-      setIsAiSpeaking(true);
-      setIsUserSpeaking(false);
-    } else {
-      setIsAiSpeaking(false);
-    }
-  }, [isSpeaking]);
 
-  const formatTime = (s: number) =>
-    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  useEffect(() => {
+    setIsAiSpeaking(agentIsSpeaking);
+  }, [agentIsSpeaking]);
+
+  useEffect(() => {
+    setIsUserSpeaking(agentIsUserSpeaking);
+  }, [agentIsUserSpeaking]);
+
+
+
 
   // Loading screen with skeleton
   if (phase === 'loading') {
@@ -351,29 +350,26 @@ function MockInterviewScreen({
               {userAnswers.length + 1}/{questions.length}
             </span>
           </div>
-          <div className="flex items-center gap-1.5 bg-neutral-800 rounded-lg px-2.5 py-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
-            <span className="text-xs text-neutral-400 font-mono tabular-nums">
-              {formatTime(sessionTime)}
-            </span>
-          </div>
+
+          <Timer canCount={phase === "interview" && callActive} />
+
         </div>
       </div>
 
       {/* Video tiles */}
-      <div className="flex-shrink-0 p-4 grid grid-cols-2 gap-3">
+      <div className="flex-shrink-0 p-4 grid grid-cols-2 gap-3 md:gap-6 ">
         {/* AI Interviewer tile */}
-        <div className="relative bg-neutral-800 rounded-2xl overflow-hidden aspect-[6/6] sm:aspect-[4/3] md:aspect-[7/3]">
+        <div className={`relative bg-neutral-800 rounded-2xl  overflow-hidden aspect-[6/6] sm:aspect-[4/3] md:aspect-[7/3] ${isAiSpeaking && "border-2"}`}>
           <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 via-neutral-900/80 to-neutral-900" />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <div
-              className={`relative w-16 h-16 lg:w-32 lg:h-32 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${isAiSpeaking ? 'ring-2 ring-primary-400 ring-offset-2 ring-offset-neutral-800' : ''
+              className={`relative w-16 h-16 lg:w-32 lg:h-32 rounded-full flex items-center justify-center text-3xl transition-all duration-300 ${isAiSpeaking ? 'ring-2 ring-primary-500 ring-offset-2 ring-offset-neutral-800' : ''
                 }`}
               style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
             >
               <img src={AI_INTERVIEWER.avatar} alt="" className="rounded-full" />
               {isAiSpeaking && (
-                <div className="absolute inset-0 rounded-full ring-4 ring-primary-400/40 animate-ping" />
+                <div className="absolute inset-0 rounded-full ring-4 ring-primary-500/40 animate-ping" />
               )}
             </div>
             {8 > 6 && (
@@ -409,24 +405,39 @@ function MockInterviewScreen({
         </div>
 
         {/* User tile */}
-        <div className="relative bg-neutral-800 rounded-2xl overflow-hidden aspect-[6/6] sm:aspect-[4/3] md:aspect-[7/3]" >
+        <div className={`relative bg-neutral-800 rounded-2xl ${isUserSpeaking && 'border-2'} overflow-hidden aspect-[6/6] sm:aspect-[4/3] md:aspect-[7/3]`} >
           <div className="absolute inset-0 bg-gradient-to-br from-neutral-700/50 to-neutral-900" />
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <div
-              className={`relative w-16 h-16 lg:w-32 lg:h-32 rounded-full bg-neutral-600 flex items-center justify-center text-2xl transition-all duration-300 ${isUserSpeaking ? 'ring-2 ring-secondary-400 ring-offset-2 ring-offset-neutral-800' : ''
-                }`}
-            >
-               <img src={"/peter-babs.jpg"} alt="" className="rounded-full" />
-              {isUserSpeaking && (
-                <div className="absolute inset-0 rounded-full ring-4 ring-secondary-400/40 animate-ping" />
-              )}
-            </div>
+            {
+              profile?.avatar_url ?
+                (<div
+                  className={`relative w-16 h-16 lg:w-32 lg:h-32 rounded-full bg-secondary-600 flex items-center justify-center text-2xl transition-all duration-300 ${isUserSpeaking ? 'ring-2 ring-secondary-400 ring-offset-2 ring-offset-neutral-800' : ''
+                    }`}
+                >
+                  <img src={profile?.avatar_url} alt="" className="rounded-full w-full h-full" />
+                  {isUserSpeaking && (
+                    <div className="absolute inset-0 rounded-full ring-4 ring-secondary-400/40 animate-ping" />
+                  )}
+                </div>
+                ) :
+                (<div
+                  className={`relative w-16 h-16 lg:w-32 lg:h-32 rounded-full bg-secondary-500 flex items-center justify-center text-2xl transition-all duration-300 ${isUserSpeaking ? 'ring-2 ring-secondary-400 ring-offset-2 ring-offset-neutral-800' : ''
+                    }`}
+                >
+                  {getInitials(profile.name)}
+                  {isUserSpeaking && (
+                    <div className="absolute inset-0 rounded-full ring-4 ring-secondary-500/40 animate-ping" />
+                  )}
+                </div>
+                )
+            }
+
             {isUserSpeaking && (
               <div className="flex gap-0.5 items-end h-4">
                 {[4, 8, 12, 8, 4, 8, 12].map((h, i) => (
                   <div
                     key={i}
-                    className="w-0.5 bg-secondary-400 rounded-full animate-pulse"
+                    className="w-0.5 bg-secondary-500 rounded-full animate-pulse"
                     style={{ height: `${h}px`, animationDelay: `${i * 100}ms` }}
                   />
                 ))}
@@ -455,9 +466,11 @@ function MockInterviewScreen({
       </div>
 
       {/* Live Transcript - Real-time updates */}
+
+
       <div
-        className="flex-1 mx-4 mb-3 bg-neutral-900 rounded-2xl border border-neutral-800 flex flex-col overflow-hidden"
-        style={{ minHeight: '120px', maxHeight: '200px' }}
+        className={`flex-1 mx-4 mb-3 bg-neutral-900 rounded-2xl border border-neutral-800 flex flex-col overflow-hidden max-h-[350px] sm:max-h-[280px] md:max-h-[300px] lg:max-h-[270px] ${processingAnswer && 'max-h-[150px] sm:max-h-[150px] md:max-h-[150px] lg:max-h-[150px]'}`}
+        style={{ minHeight: '120px', }}
       >
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-neutral-800 flex-shrink-0">
           <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
@@ -472,11 +485,11 @@ function MockInterviewScreen({
             </p>
           ) : (
             transcriptMessages.map((entry, idx) => (
-              <div key={idx} className="space-y-0.5">
+              <div key={idx} className={`space-y-1 w-fit max-w-[70%] ${entry.role !== 'assistant' && 'ml-auto flex flex-col items-end'}`}>
                 <p className={`text-xs font-semibold ${entry.role === 'assistant' ? 'text-primary-400' : 'text-secondary-400'}`}>
                   {entry.role === 'assistant' ? `${AI_INTERVIEWER.name} (Interviewer)` : `${userName} (You)`}
                 </p>
-                <p className="text-sm text-neutral-300 leading-relaxed">{entry.content}</p>
+                <p className={`text-sm text-neutral-300 bg-neutral-800 p-2 rounded-t-xl  leading-relaxed ${entry.role === "assistant" ? "rounded-br-xl" : "rounded-bl-xl"}`}>{entry.content}</p>
               </div>
             ))
           )}
@@ -493,13 +506,34 @@ function MockInterviewScreen({
                 </p>
               </div>
             )}
+          {callActive && isUserSpeaking && transcriptMessages.length > 0 &&
+            transcriptMessages[transcriptMessages.length - 1]?.role === 'assistant' && (
+              <div className="space-y-0.5 ml-auto flex flex-col items-end">
+                <p className="text-xs font-semibold text-primary-400">{userName} (You)</p>
+                <p className="text-sm text-neutral-400 italic">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
+                    Speaking...
+                  </span>
+                </p>
+              </div>
+            )}
         </div>
       </div>
+
+      {
+        processingAnswer && (
+          <div className="py-4 md:py-8 px-4 flex justify-center items-center flex-col ">
+            <Loader2 className="animate-spin w-12 h-12 text-neutral-500" />
+            <span className="text-xs text-neutral-500">Processing you answer...</span>
+          </div>
+        )
+      }
 
 
       {/* Controls */}
       <div className="px-4 pb-5 flex-shrink-0 bg-neutral-950">
-        {!callActive && (
+        {!callActive && transcriptMessages.length === 0 && !processingAnswer && (
           <div className="space-y-2.5">
             <div className="flex items-center gap-2 bg-primary-900/40 border border-primary-800 rounded-xl px-4 py-2.5">
               <span className="text-base">🎤</span>

@@ -43,6 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (data) {
                 setProfile({
                     name: data.full_name || '',
+                    avatar_url: data.avatar_url || '',
                     targetRole: data.target_role || '',
                     level: data.experience_level || '',
                     goal: data.biggest_challenge || '',

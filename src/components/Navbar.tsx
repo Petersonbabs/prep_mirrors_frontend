@@ -6,6 +6,7 @@ import { NotificationDropdown } from './NotificationDropdown';
 import { GetPlusBadge } from './GetPlusBadge';
 import { useAuth } from '../lib/hooks/useAuth';
 import { useDashboardData } from '../lib/hooks/useDashboardData';
+import { ProfileAvatar } from './ui/ProfileAvatar';
 
 interface NavbarProps {
   theme: Theme;
@@ -167,11 +168,16 @@ export function Navbar({
                 <NotificationDropdown />
                 <button
                   onClick={() => navigate('dashboard/account')}
-                  className={`${subscription?.tier === "pro" ? "flex" : "hidden md:flex"} items-center gap-2 px-3 py-1.5 rounded-xl bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors`}>
-
-                  <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold">
-                    {userProfile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
+                  className={`${subscription?.tier === "pro" ? "flex" : "hidden md:flex"} items-center gap-2 px-3 py-1.5 rounded-xl  dark:bg-primary-900/20 ${userProfile.avatar_url ? 'dark:bg-neutral-800 dark:text-primary-50' : 'bg-primary-50 dark:bg-primary-900/20'} text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors`}>
+                  {
+                    userProfile?.avatar_url ? (
+                      <ProfileAvatar avatarUrl={userProfile?.avatar_url} size='xs' />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-bold">
+                        {userProfile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                    )
+                  }
                   <span className="hidden sm:block">
                     {userProfile?.name?.split(' ')[0]}
                   </span>

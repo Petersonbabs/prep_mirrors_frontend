@@ -77,6 +77,7 @@ export interface FeedbackResponse {
 
 export interface UserProfile {
   name: string;
+  avatar_url: string;
   targetRole: string;
   level: string;
   goal: string;

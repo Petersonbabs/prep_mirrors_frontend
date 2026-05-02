@@ -14,3 +14,16 @@ export const UnderDevelopmentComponent = ({ children }: { children: React.ReactN
         );
     }
 };
+
+export const getInitials = (text: String) => {
+    if (!text) return '?';
+    return text
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+};
+
+export const formatTime = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
