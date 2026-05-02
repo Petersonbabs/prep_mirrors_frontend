@@ -1,6 +1,6 @@
 // frontend/src/components/ui/ProfileAvatar.tsx
 import { useState } from 'react';
-import { User, Camera } from 'lucide-react';
+import { Camera } from 'lucide-react';
 
 interface ProfileAvatarProps {
     avatarUrl?: string | null;
