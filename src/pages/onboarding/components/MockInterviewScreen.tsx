@@ -34,7 +34,7 @@ function MockInterviewScreen({
   profile,
   onPreConfidenceSet,
 }: MockInterviewScreenProps) {
-  const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('pre-rating');
+  const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('loading');
   const [preConfidence, setPreConfidence] = useState<number | null>(null);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [callActive, setCallActive] = useState(false);
@@ -55,7 +55,7 @@ function MockInterviewScreen({
     const fetchQuestions = async () => {
       if (!profileId) {
         setLoadingError("Profile ID not found");
-        setPhase('interview');
+        setPhase('pre-rating');
         return;
       }
 
@@ -63,15 +63,15 @@ function MockInterviewScreen({
         const response = await onboardingApi.getMyOnboardingQuestions(profileId);
         if (response.success && response.questions) {
           setQuestions(response.questions);
-          setPhase('interview');
+          setPhase('pre-rating');
         } else {
           setLoadingError("Failed to load interview questions");
-          setPhase('interview');
+          setPhase('pre-rating');
         }
       } catch (error) {
         console.error("Error fetching questions:", error);
         setLoadingError("Failed to load interview questions");
-        setPhase('interview');
+        setPhase('pre-rating');
       }
     };
 
