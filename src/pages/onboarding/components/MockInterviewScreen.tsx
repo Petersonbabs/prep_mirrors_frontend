@@ -34,7 +34,7 @@ function MockInterviewScreen({
   profile,
   onPreConfidenceSet,
 }: MockInterviewScreenProps) {
-  const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('interview');
+  const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('pre-rating');
   const [preConfidence, setPreConfidence] = useState<number | null>(null);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [callActive, setCallActive] = useState(false);
@@ -372,7 +372,7 @@ function MockInterviewScreen({
             </span>
           </div>
 
-          <Timer canCount={phase === "interview" && callActive} sessionTime={sessionTime} setSessionTime={setSessionTime}/>
+          <Timer canCount={phase === "interview" && callActive} sessionTime={sessionTime} setSessionTime={setSessionTime} />
 
         </div>
       </div>
