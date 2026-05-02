@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import { formatTime } from '../../utils/utils';
 
-const Timer = ({ canCount }: { canCount: boolean }) => {
+const Timer = ({ canCount, sessionTime, setSessionTime }: { canCount: boolean, sessionTime: number, setSessionTime: Dispatch<SetStateAction<number>> }) => {
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const [sessionTime, setSessionTime] = useState(0);
+    // const [sessionTime, setSessionTime] = useState(0);
 
     useEffect(() => {
         if (canCount) {

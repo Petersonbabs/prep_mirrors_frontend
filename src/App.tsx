@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Routes,
   Route,
@@ -55,12 +55,34 @@ import PaymentSuccess from './pages/SuccessPage';
 import AuthCallback from './pages/AuthCallback';
 import OnboardingProvider from './pages/onboarding/components/OnboardingProvider';
 import { LemonSqueezyProvider } from './contexts/LemonSqueezyContext';
+import { identifyUser, initPostHog } from './lib/posthog';
 
 export function App() {
   const { user, profile: userProfile, isLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [theme, setTheme] = useState<Theme>('system');
+
+  const hasIdentifiedRef = useRef(false);
+
+  useEffect(() => {
+    initPostHog();
+  }, []);
+
+  useEffect(() => {
+    // Only identify once
+    if (user?.id && userProfile && !hasIdentifiedRef.current) {
+      hasIdentifiedRef.current = true;
+      identifyUser(user.id, {
+        email: user.email,
+        name: userProfile.name,
+        target_role: userProfile.targetRole,
+        subscription_tier: userProfile.subscription_tier,
+        experience_level: userProfile.level,
+        signup_date: user.created_at,
+      });
+    }
+  }, [user, userProfile]);
 
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   // Apply theme to html element

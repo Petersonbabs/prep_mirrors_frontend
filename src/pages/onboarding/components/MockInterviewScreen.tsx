@@ -6,6 +6,7 @@ import { onboardingApi } from "../../../lib/api/onboarding";
 import { UserProfile } from "../../../lib/types";
 import { getInitials } from "../../../utils/utils";
 import Timer from "../../../components/ui/Timer";
+import { captureEvent } from "../../../lib/posthog";
 
 const AI_INTERVIEWER = {
   name: 'Sarah Chen',
@@ -42,7 +43,7 @@ function MockInterviewScreen({
   const [transcriptMessages, setTranscriptMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [questions, setQuestions] = useState<string[]>([]);
   const [loadingError, setLoadingError] = useState<string | null>(null);
-
+  const [sessionTime, setSessionTime] = useState(0);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const userName = firstName || 'You';
   const [processingAnswer, setProcessingAnswer] = useState(false)
@@ -99,10 +100,19 @@ function MockInterviewScreen({
 
   const handleCallEnd = async (messages: Array<{ role: string; content: string }>) => {
 
+
     const conversation = messages.map(msg => ({
       role: msg.role === 'assistant' ? 'interviewer' : 'user',
       content: msg.content
     }));
+
+    captureEvent('onboarding_interview_call_ended', {
+      step: 11,
+      transcript: conversation,
+      questions_answered: userAnswers.length,
+      total_time: sessionTime,
+    })
+
     const answers = conversation
       .filter(m => m.role === 'user')
       .map(m => m.content);
@@ -268,7 +278,13 @@ function MockInterviewScreen({
               {confidenceLevels.map(({ score, emoji, label }) => (
                 <button
                   key={score}
-                  onClick={() => handlePreConfidenceSelect(score)}
+                  onClick={() => {
+                    handlePreConfidenceSelect(score)
+                    captureEvent('onboarding_pre_confidence_selected', {
+                      step: 11,
+                      score
+                    })
+                  }}
                   className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all duration-200 group ${preConfidence === score
                     ? 'border-primary-500 bg-primary-900/30 scale-110'
                     : 'border-neutral-700 hover:border-neutral-500 hover:bg-neutral-800'
@@ -301,7 +317,12 @@ function MockInterviewScreen({
             Great job answering all {questions.length} questions. Your feedback is ready.
           </p>
           <button
-            onClick={onContinue}
+            onClick={() => {
+              onContinue()
+              captureEvent('onboarding_see_my_feedback_seen', {
+                step: 11,
+              })
+            }}
             className="w-full py-3.5 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors"
           >
             See My Feedback →
@@ -351,7 +372,7 @@ function MockInterviewScreen({
             </span>
           </div>
 
-          <Timer canCount={phase === "interview" && callActive} />
+          <Timer canCount={phase === "interview" && callActive} sessionTime={sessionTime} setSessionTime={setSessionTime}/>
 
         </div>
       </div>
@@ -543,7 +564,14 @@ function MockInterviewScreen({
             </div>
             <button
               disabled={startingCall}
-              onClick={startCall}
+              onClick={() => {
+                startCall()
+                captureEvent('onboarding_call_started', {
+                  step: 11,
+                  questions_count: questions.length,
+                  job_target: jobTarget,
+                })
+              }}
               className="w-full py-3.5 disabled:bg-primary-500/40 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors flex items-center justify-center gap-4"
             >
               <Mic />

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { onboardingApi } from '../../../lib/api/onboarding';
 import { useAuth } from '../../../lib/hooks/useAuth';
 import toast from 'react-hot-toast';
+import { captureEvent } from '../../../lib/posthog';
 
 // Define types directly in component to avoid import issues
 interface CategoryScore {
@@ -92,6 +93,10 @@ export default function OnboardingFeedbackScreen({
 
     if (onPostConfidenceSet) {
       await onPostConfidenceSet(score);
+      captureEvent('onboarding_post_confidence_selected', {
+        step: 13,
+        score
+      })
     }
 
     setIsSavingConfidence(false);
@@ -295,6 +300,12 @@ export default function OnboardingFeedbackScreen({
         <p className="text-primary-600 dark:text-primary-400 text-sm mt-1">{feedbackData.suggested_practice.description}</p>
         {feedbackData.suggested_practice.url && (
           <a
+            onClick={() => {
+              captureEvent('onboarding_suggested_practice_clicked', {
+                step: 13,
+                url: feedbackData.suggested_practice.url
+              })
+            }}
             href={feedbackData.suggested_practice.url}
             target="_blank"
             rel="noopener noreferrer"
@@ -326,7 +337,12 @@ export default function OnboardingFeedbackScreen({
       </div>
 
       <button
-        onClick={onContinue}
+        onClick={() => {
+          onContinue()
+          captureEvent('onboarding_feedback_seen', {
+            step: 13,
+          })
+        }}
         className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors text-base shadow-soft"
       >
         See how PrepMirrors fixes this →

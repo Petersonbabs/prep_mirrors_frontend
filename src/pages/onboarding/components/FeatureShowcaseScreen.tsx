@@ -1,4 +1,5 @@
 import { CheckIcon } from "lucide-react";
+import { captureEvent } from "../../../lib/posthog";
 
 interface Feature {
     emoji: string;
@@ -141,7 +142,12 @@ function FeatureShowcaseScreen({
             </div>
 
             <button
-                onClick={onContinue}
+                onClick={()=>{
+                    onContinue()
+                    captureEvent(`onboarding_feature_${featureIndex + 1}_seen`, {
+                        step: featureIndex + 14
+                    }) 
+                }}
                 className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors text-base shadow-soft">
 
                 {isLast ? 'Make my commitment →' : 'Next feature →'}

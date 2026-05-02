@@ -22,6 +22,7 @@ import { generateQuestionsParams, onboardingApi } from '../../lib/api/onboarding
 import toast from 'react-hot-toast';
 import OnboardingFeedbackScreen from './components/FeedbackScreen';
 import { UserProfile } from '../../lib/types';
+import { captureEvent } from '../../lib/posthog';
 
 interface OnboardingPageProps {
   onComplete: () => void;
@@ -297,7 +298,25 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
 
 
   if (step === 20)
-    return <PaywallScreen onUpgrade={handleUpgrade} onSkip={handleSkip} />;
+    return <PaywallScreen onUpgrade={() => {
+      handleUpgrade()
+      captureEvent(`onboarding_paywall_upgrade_clicked`, {
+        step
+      })
+      captureEvent(`onboarding_completed`, {
+        role: selectedRole,
+        level:selectedLevel
+      })
+    }} onSkip={() => {
+      handleSkip()
+      captureEvent(`onboarding_paywall_skipped`, {
+        step
+      })
+      captureEvent(`onboarding_completed`, {
+        role: selectedRole,
+        level:selectedLevel
+      })
+    }} />;
   // Full-screen steps (no top bar, no padding)
   if (step === 12) {
     return (
@@ -349,7 +368,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       {/* Content */}
       <div
         key={step}
-        className={`flex-1 flex flex-col px-5 pb-8 ${step === 0 ? 'justify-center items-center' : ''} animate-slide-up`}>
+        className={`flex - 1 flex flex - col px - 5 pb - 8 ${step === 0 ? 'justify-center items-center' : ''} animate - slide - up`}>
 
         {/* ── Step 0: Welcome ── */}
         {step === 0 &&
@@ -395,7 +414,13 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
                 )}
             </div>
             <button
-              onClick={handleNext}
+              onClick={() => {
+                handleNext()
+                captureEvent('onboarding_started', {
+                  step: 0,
+                  has_prefill: !!prefilledName
+                })
+              }}
               className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors text-base shadow-soft">
 
               Let's get you ready →
@@ -440,9 +465,15 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
             }
             <div className="mt-auto pt-8">
               <button
-                onClick={handleNext}
+                onClick={() => {
+                  handleNext()
+                  captureEvent('onboarding_name_inputted', {
+                    step: 1,
+                    name: !!nameInput
+                  })
+                }}
                 disabled={!canProceed()}
-                className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'}`}>
+                className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'} `}>
 
                 Continue
               </button>
@@ -476,9 +507,15 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               )}
             </div>
             <button
-              onClick={handleNext}
+              onClick={() => {
+                handleNext()
+                captureEvent('onboarding_role_selected', {
+                  role: selectedRole,
+                  step: 2,
+                })
+              }}
               disabled={!canProceed()}
-              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'}`}>
+              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'} `}>
 
               Next
             </button>
@@ -486,7 +523,12 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
         }
 
         {step === 3 && roleFact &&
-          <EducationFactScreen fact={roleFact} onContinue={handleNext} />
+          <EducationFactScreen fact={roleFact} onContinue={() => {
+            handleNext()
+            captureEvent('onboarding_role_fact_seen', {
+              step: 3,
+            })
+          }} />
         }
 
         {/* ── Step 4: Level ── */}
@@ -515,9 +557,15 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               )}
             </div>
             <button
-              onClick={handleNext}
+              onClick={() => {
+                handleNext()
+                captureEvent('onboarding_experience_level_selected', {
+                  role: selectedLevel,
+                  step: 4,
+                })
+              }}
               disabled={!canProceed()}
-              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'}`}>
+              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'} `}>
 
               Next
             </button>
@@ -525,7 +573,12 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
         }
 
         {step === 5 && levelFact &&
-          <EducationFactScreen fact={levelFact} onContinue={handleNext} />
+          <EducationFactScreen fact={levelFact} onContinue={() => {
+            handleNext()
+            captureEvent('onboarding_experience_level_fact_seen', {
+              step: 5,
+            })
+          }} />
         }
 
         {/* ── Step 6: Challenge ── */}
@@ -554,17 +607,27 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               )}
             </div>
             <button
-              onClick={handleNext}
+              onClick={() => {
+                handleNext()
+                captureEvent('onboarding_interview_challenge_selected', {
+                  step: 6,
+                  challenge: selectedChallenge
+                })
+              }}
               disabled={!canProceed()}
-              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'}`}>
-
+              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'} `}>
               Next
             </button>
           </div>
         }
 
         {step === 7 && challengeFact &&
-          <EducationFactScreen fact={challengeFact} onContinue={handleNext} />
+          <EducationFactScreen fact={challengeFact} onContinue={() => {
+            handleNext()
+            captureEvent('onboarding_challenge_fact_seen', {
+              step: 7,
+            })
+          }} />
         }
 
         {/* ── Step 8: Timeline ── */}
@@ -587,9 +650,15 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               )}
             </div>
             <button
-              onClick={handleNext}
+              onClick={() => {
+                handleNext()
+                captureEvent('onboarding_next_interview_selected', {
+                  step: 8,
+                  selectedTimeline
+                })
+              }}
               disabled={!canProceed()}
-              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'}`}>
+              className={`w-full py-4 rounded-2xl font-bold text-base transition-all sticky bottom-4 ${canProceed() ? 'bg-primary-500 hover:bg-primary-600 text-white shadow-soft' : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-400 cursor-not-allowed'} `}>
 
               Next
             </button>
@@ -597,7 +666,12 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
         }
 
         {step === 9 && timelineFact &&
-          <EducationFactScreen fact={timelineFact} onContinue={handleNext} />
+          <EducationFactScreen fact={timelineFact} onContinue={() => {
+            handleNext()
+            captureEvent('onboarding_timeline_fact_seen', {
+              step: 9,
+            })
+          }} />
         }
 
         {/* ── Step 10: Insight / Social Proof ── */}
@@ -633,7 +707,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
                     key={i}
                     className="flex items-center gap-2 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl px-4 py-2.5 shadow-card animate-slide-up"
                     style={{
-                      animationDelay: `${i * 100}ms`
+                      animationDelay: `${i * 100} ms`
                     }}>
 
                     <span className="text-lg">{item.emoji}</span>
@@ -665,7 +739,12 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
               </p>
             </div>
             <button
-              onClick={handleImReady}
+              onClick={() => {
+                handleImReady()
+                captureEvent('onboarding_insight_social_proof_seen', {
+                  step: 10,
+                })
+              }}
               className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors text-base shadow-soft">
 
               I'm ready →
@@ -701,7 +780,6 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
             featureIndex={step - 14}
             onContinue={handleNext}
             isLast={step === 18} />
-
         }
 
         {/* ── Step 19: Commitment ── */}
@@ -715,7 +793,12 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
                 {commitmentText}
               </h1>
             </div>
-            <CommitButton onCommit={() => navigate('forward')} />
+            <CommitButton onCommit={() => {
+              navigate('forward')
+              captureEvent(`onboarding_commitment_made`, {
+                step
+              })
+            }} />
             <p className="text-xs text-neutral-400 mt-8 max-w-xs">
               This commitment is for you, not us. Research shows that people who
               make explicit commitments are 3× more likely to follow through.

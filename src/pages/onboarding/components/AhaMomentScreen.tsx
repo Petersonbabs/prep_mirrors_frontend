@@ -1,6 +1,7 @@
 // AhaMomentScreen.tsx - simplified
 import { CheckIcon, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { captureEvent } from "../../../lib/posthog";
 
 interface AhaMomentScreenProps {
   firstName: string;
@@ -151,7 +152,12 @@ function AhaMomentScreen({
             </p>
           </div>
           <button
-            onClick={onContinue}
+            onClick={() => {
+              onContinue()
+              captureEvent('onboarding_interview_ready_seen', {
+                step: 11,
+              })
+            }}
             className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors text-base shadow-soft"
           >
             Start Practice Interview →

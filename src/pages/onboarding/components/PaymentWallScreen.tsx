@@ -4,6 +4,7 @@ import { PlanId, plans, subscription } from "../../../data/pricing";
 import { CheckIcon } from "lucide-react";
 import { useLemonSqueezy } from "../../../contexts/LemonSqueezyContext";
 import { useAuth } from "../../../lib/hooks/useAuth";
+import { captureEvent } from "../../../lib/posthog";
 
 function PaywallScreen({
   onUpgrade,
@@ -19,7 +20,9 @@ function PaywallScreen({
       console.error('No user email found');
       return;
     }
-
+    captureEvent(`paywall_upgrade`, {
+      plan: selected
+    })
     setIsProcessing(true);
 
     try {
