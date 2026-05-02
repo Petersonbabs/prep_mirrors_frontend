@@ -9,10 +9,10 @@ export function useDashboardData() {
     const [loading, setLoading] = useState(true);
     const [streak, setStreak] = useState(4);
     const [stats, setStats] = useState({
-        interviewsDone: 7,
-        questionsAnswered: 34,
-        skillsImproved: 5,
-        badgesEarned: 3,
+        interviewsDone: 0,
+        questionsAnswered: 0,
+        skillsImproved: 0,
+        badgesEarned: 0,
     });
 
 
