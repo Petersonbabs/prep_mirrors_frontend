@@ -368,7 +368,7 @@ export function OnboardingPage({ onComplete, onBack }: OnboardingPageProps) {
       {/* Content */}
       <div
         key={step}
-        className={`flex - 1 flex flex - col px - 5 pb - 8 ${step === 0 ? 'justify-center items-center' : ''} animate - slide - up`}>
+        className={`flex-1 flex flex-col px-5 pb-8 ${step === 0 ? 'justify-center items-center' : ''} animate-slide-up`}>
 
         {/* ── Step 0: Welcome ── */}
         {step === 0 &&
