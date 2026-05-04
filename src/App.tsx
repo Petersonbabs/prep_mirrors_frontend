@@ -56,6 +56,7 @@ import AuthCallback from './pages/AuthCallback';
 import OnboardingProvider from './pages/onboarding/components/OnboardingProvider';
 import { LemonSqueezyProvider } from './contexts/LemonSqueezyContext';
 import { identifyUser, initPostHog } from './lib/posthog';
+import { WaitlistRedirect } from './components/WaitListRedirect';
 
 export function App() {
   const { user, profile: userProfile, isLoading, refreshProfile } = useAuth();
@@ -128,81 +129,83 @@ export function App() {
   const showSidebar = !!userProfile && SIDEBAR_PATHS.includes(location.pathname);
   return (
     <div className="min-h-screen w-full bg-white dark:bg-neutral-900 transition-colors duration-300 font-body">
-      <LemonSqueezyProvider>
-        <Toaster
-          closeButton
-          richColors
-          position='top-right'
-        />
-        {showNavbar &&
-          <Navbar
-            theme={theme}
-            onThemeChange={setTheme}
-            showSidebar={showSidebar} />
-        }
+      <WaitlistRedirect>
+        <LemonSqueezyProvider>
+          <Toaster
+            closeButton
+            richColors
+            position='top-right'
+          />
+          {showNavbar &&
+            <Navbar
+              theme={theme}
+              onThemeChange={setTheme}
+              showSidebar={showSidebar} />
+          }
 
-        {showSidebar && <Sidebar />}
+          {showSidebar && <Sidebar />}
 
-        <main
-          className={`${showNavbar ? 'pt-16' : ''} ${showSidebar ? 'md:pl-56' : ''}`}>
+          <main
+            className={`${showNavbar ? 'pt-16' : ''} ${showSidebar ? 'md:pl-56' : ''}`}>
 
-          <Routes>
-            <Route
-              path="/*"
-              element={
-                <PublicLayout />
-              } />
+            <Routes>
+              <Route
+                path="/*"
+                element={
+                  <PublicLayout />
+                } />
 
-            <Route
-              path="/dashboard/*"
-              element={
-                <DashboardLayout />
-              } />
+              <Route
+                path="/dashboard/*"
+                element={
+                  <DashboardLayout />
+                } />
 
-            <Route
-              path="/signin"
-              element={
-                <Signin />
-              }
-            />
+              <Route
+                path="/signin"
+                element={
+                  <Signin />
+                }
+              />
 
-            <Route
-              path="/auth"
-              element={
-                <AuthPage
-                  onContinue={() => navigate('/onboarding')}
-                  onBack={() => navigate('/')} />
+              <Route
+                path="/auth"
+                element={
+                  <AuthPage
+                    onContinue={() => navigate('/onboarding')}
+                    onBack={() => navigate('/')} />
 
-              } />
+                } />
 
-            <Route path='/auth/callback' element={<AuthCallback />} />
+              <Route path='/auth/callback' element={<AuthCallback />} />
 
-            <Route
-              path="/onboarding"
-              element={
-                (!isLoading && !user) ? <Navigate to="/auth" replace /> :
-                  <OnboardingProvider>
-                    <OnboardingPage
-                      onComplete={handleOnboardingComplete}
-                      onBack={() => navigate('/auth')} />
-                  </OnboardingProvider>
-              }
-            />
+              <Route
+                path="/onboarding"
+                element={
+                  (!isLoading && !user) ? <Navigate to="/auth" replace /> :
+                    <OnboardingProvider>
+                      <OnboardingPage
+                        onComplete={handleOnboardingComplete}
+                        onBack={() => navigate('/auth')} />
+                    </OnboardingProvider>
+                }
+              />
 
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-
-
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/paywall" element={<Paywall />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
 
 
-            <Route path="/admin" element={<AdminPage />} />
-            {/* Catch-all → home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-      </LemonSqueezyProvider>
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/paywall" element={<Paywall />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+
+
+              <Route path="/admin" element={<AdminPage />} />
+              {/* Catch-all → home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+        </LemonSqueezyProvider>
+      </WaitlistRedirect>
     </div>);
 
 }

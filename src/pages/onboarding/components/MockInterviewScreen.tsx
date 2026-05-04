@@ -355,7 +355,7 @@ function MockInterviewScreen({
           <div className="flex items-center gap-2">
             <span className="text-xs text-neutral-500">Q</span>
             <div className="flex gap-1">
-              {questions.map((_, i) => (
+              {[questions].map((_, i) => (
                 <div
                   key={i}
                   className={`w-5 h-1.5 rounded-full transition-all duration-300 ${i < userAnswers.length
