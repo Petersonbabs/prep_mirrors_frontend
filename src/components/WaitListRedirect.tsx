@@ -12,7 +12,7 @@ export function WaitlistRedirect({ children }: WaitlistRedirectProps) {
   const isAdmin = localStorage.getItem("testKey") ?? null
 
   // If app is not ready and not already on waitlist page, redirect
-  if (!APP_READY && !isWaitlistPage && isProd && isAdmin === '1234$#@!') {
+  if (!APP_READY && !isWaitlistPage && isProd && (!isAdmin || isAdmin !== '1234$#@!')) {
     window.location.href = "https://waitlist.prepmirrors.com"
     return null 
   }
