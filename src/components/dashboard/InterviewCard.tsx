@@ -1,6 +1,7 @@
 // frontend/src/components/dashboard/InterviewCard.tsx
 import { useState } from 'react';
 import { PlayIcon, DollarSignIcon, MapPinIcon, BriefcaseIcon, Wallet, Building2, Info, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
     Easy: 'bg-secondary-100 dark:bg-green-500 text-secondary-700',
@@ -40,8 +41,13 @@ const getCompanyColor = (logo: string): string => {
     return COLOR_PALETTE[index];
 };
 
-export function InterviewCard({ interview, index, onStart }: { interview: any; index: number; onStart: (interview: any) => void }) {
+export function InterviewCard({ interview, index }: { interview: any; index: number }) {
     const [showDetails, setShowDetails] = useState(false);
+    const navigate = useNavigate();
+
+    const onStart = () => {
+        navigate(`/dashboard/interview/${interview.id}`, { state: { companyName: interview.name } });
+    };
 
     return (
         <>
@@ -56,7 +62,7 @@ export function InterviewCard({ interview, index, onStart }: { interview: any; i
                         {interview.logo}
                     </div>
 
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 w-full">
                         <div className="flex items-start justify-between gap-2 mb-1">
                             <div>
                                 <h3 className="font-display font-bold text-neutral-900 dark:text-white text-base leading-tight">{interview.role}</h3>
@@ -86,7 +92,7 @@ export function InterviewCard({ interview, index, onStart }: { interview: any; i
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center justify-between w-full">
                             <div className="flex items-center gap-2">
                                 <span className="px-2.5 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-600 text-xs font-semibold rounded-full">
                                     Technical
@@ -98,7 +104,7 @@ export function InterviewCard({ interview, index, onStart }: { interview: any; i
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    onStart(interview);
+                                    onStart();
                                 }}
                                 className="flex w-full sm:w-fit items-center justify-center gap-1.5 px-4 py-4 md:py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm sm:text-xs font-semibold rounded-xl transition-colors"
                             >
@@ -175,7 +181,7 @@ export function InterviewCard({ interview, index, onStart }: { interview: any; i
                                 <button
                                     onClick={() => {
                                         setShowDetails(false);
-                                        onStart(interview);
+                                        onStart();
                                     }}
                                     className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
                                 >

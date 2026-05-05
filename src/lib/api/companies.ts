@@ -25,4 +25,9 @@ export const companiesApi = {
         });
         return response.json();
     },
+
+    getCompanyDetails: async (companyId: string) => {
+        const response = await fetch(`${API_URL}/api/company/${companyId}`);
+        return response.json();
+    }
 };

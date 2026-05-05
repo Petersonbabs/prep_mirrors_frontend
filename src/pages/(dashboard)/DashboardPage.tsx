@@ -1,5 +1,5 @@
 // frontend/src/pages/DashboardPage.tsx (updated)
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy } from 'react';
 import { ZapIcon } from 'lucide-react';
 import { useDashboardData } from '../../lib/hooks/useDashboardData';
 import { useAuth } from '../../lib/hooks/useAuth';
@@ -18,6 +18,8 @@ import { Company } from '../../lib/types';
 import { RefreshCompaniesButton } from '../../components/dashboard/RefreshCompaniesButton';
 import { RequiredInfoModal } from '../../components/dashboard/RequiredInfoModal';
 import { userApi } from '../../lib/api/users';
+import { useNavigate } from 'react-router-dom';
+const InterviewFlow = lazy(() => import('./InterviewFlow').then(module => ({ default: module.InterviewFlow })));
 
 interface DashboardPageProps {
   onStartInterview: (interview: any) => void;
@@ -41,7 +43,7 @@ const DashboardSkeleton = () => (
   </div>
 );
 
-export function DashboardPage({ onStartInterview, onWalkthroughComplete }: DashboardPageProps) {
+export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
   const { subscription, loading, streak, stats, firstName } = useDashboardData();
   const { user, profile, refreshProfile } = useAuth();
   const [filter, setFilter] = useState<'all' | 'Easy' | 'Medium' | 'Hard'>('all');
@@ -53,6 +55,11 @@ export function DashboardPage({ onStartInterview, onWalkthroughComplete }: Dashb
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const timeOfDay = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
+  const navigate = useNavigate();
+
+  const handleStartInterview = (companyId: string, companyName: string) => {
+    navigate(`/interview/${companyId}`, { state: { companyName } });
+  };
 
   useEffect(() => {
     const checkRequiredInfo = async () => {
@@ -108,6 +115,7 @@ export function DashboardPage({ onStartInterview, onWalkthroughComplete }: Dashb
   const loadCompanies = async () => {
     setLoadingCompanies(true);
     const response = await companiesApi.getUserCompanies(user?.id as string);
+    console.log("user companiews: ", response)
     if (response.success && response.companies.length > 0) {
       setCompanies(response.companies);
     } else {
@@ -185,7 +193,7 @@ export function DashboardPage({ onStartInterview, onWalkthroughComplete }: Dashb
             <div className="flex items-center gap-2">
 
               <button
-                onClick={() => onStartInterview(companies[0])}
+                onClick={() => handleStartInterview(companies[0].id, companies[0].name)}
                 className="quick-start-btn flex items-center gap-2 px-5 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-2xl transition-colors shadow-soft whitespace-nowrap"
               >
                 <ZapIcon className="w-4 h-4" />
@@ -228,7 +236,7 @@ export function DashboardPage({ onStartInterview, onWalkthroughComplete }: Dashb
 
               <div className="space-y-3">
                 {filteredInterviews.map((interview, i) => (
-                  <InterviewCard key={interview.id} interview={interview} index={i} onStart={onStartInterview} />
+                  <InterviewCard key={interview.id} interview={interview} index={i}  />
                 ))}
               </div>
             </div>

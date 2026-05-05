@@ -36,11 +36,12 @@ export function Navbar({
   }, [location.pathname]);
   const isLoggedIn = !!userProfile;
   const isHome = location.pathname === '/';
+  const pathName = location.pathname
   const ThemeIcon =
     theme === 'dark' ? MoonIcon : theme === 'light' ? SunIcon : MonitorIcon;
   return (
     <nav
-      className={`fixed top-0 right-0 z-50 transition-all duration-300 ${showSidebar ? 'left-0 md:left-56' : 'left-0'} ${scrolled || !isHome ? 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-sm border-b border-neutral-100 dark:border-neutral-800' : 'bg-transparent'}`}>
+      className={`fixed z-50 top-0 right-0 z-50 transition-all duration-300 ${showSidebar ? 'left-0 md:left-56' : 'left-0'} ${scrolled || !isHome ? 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-sm border-b border-neutral-100 dark:border-neutral-800' : 'bg-transparent'}`}>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
@@ -167,7 +168,7 @@ export function Navbar({
               <div className="flex items-center gap-2">
                 <NotificationDropdown />
                 <button
-                  onClick={() => navigate('dashboard/account')}
+                  onClick={() => navigate(!pathName.includes("/dashboard") ? "/dashboard" : '/dashboard/settings')}
                   className={`${subscription?.tier === "pro" ? "flex" : "hidden md:flex"} items-center gap-2 px-3 py-1.5 rounded-xl  dark:bg-primary-900/20 ${userProfile.avatar_url ? 'dark:bg-neutral-800 dark:text-primary-50' : 'bg-primary-50 dark:bg-primary-900/20'} text-primary-600 dark:text-primary-400 text-sm font-medium hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors`}>
                   {
                     userProfile?.avatar_url ? (
@@ -279,7 +280,7 @@ export function Navbar({
                 Pricing
               </button>
               <button
-                onClick={() => navigate('dashboard/account')}
+                onClick={() => navigate(!pathName.includes("/dashboard") ? "/dashboard" : '/dashboard/account')}
                 className="block w-full text-left px-4 py-2.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded-xl">
 
                 Account

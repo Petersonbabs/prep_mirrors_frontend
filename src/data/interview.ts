@@ -1,3 +1,4 @@
+
 export const confidenceLevels = [
     {
         score: 1,

@@ -1,11 +1,11 @@
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom"
 import { DashboardPage } from "../../pages/(dashboard)/DashboardPage"
-import { InterviewScriptPage } from "../../pages/InterviewScriptPage"
-import { InterviewSessionPage } from "../../pages/InterviewSessionPage"
+import { InterviewScriptPage } from "../../pages/(dashboard)/InterviewScriptPage"
+import { InterviewSessionPage } from "../../pages/(dashboard)/InterviewSessionPage"
 import { InterviewData } from "../../App"
 import { useState } from "react"
 import { useAuth } from "../../lib/hooks/useAuth"
-import { FeedbackPage } from "../../pages/FeedbackPage"
+import { FeedbackPage } from "../../pages/(dashboard)/FeedbackPage"
 import { CoachPage } from "../../pages/(dashboard)/CoachPage"
 import { ProgressPage } from "../../pages/(dashboard)/ProgressPage"
 import { AccountPage } from "../../pages/(dashboard)/AccountPage"
@@ -13,6 +13,7 @@ import { SettingsPage } from "../../pages/(dashboard)/SettingsPage"
 import BillingPage from "../../pages/(dashboard)/BillingPage"
 import { SupportPage } from "../../pages/(public)/support"
 import { DashboardSupportPage } from "../../pages/(dashboard)/support"
+import { InterviewFlow } from "../../pages/(dashboard)/InterviewFlow"
 
 const DashboardLayout = () => {
     const [showWalkthrough, setShowWalkthrough] = useState(false);
@@ -134,6 +135,7 @@ const DashboardLayout = () => {
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/support" element={<DashboardSupportPage />} />
+                <Route path="/interview/:companyId" element={<InterviewFlow />} />
             </Routes>
         </div>
     )

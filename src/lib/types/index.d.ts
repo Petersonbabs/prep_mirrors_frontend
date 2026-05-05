@@ -77,6 +77,7 @@ export interface FeedbackResponse {
 
 export interface UserProfile {
   name: string;
+  id?: string;
   avatar_url: string;
   targetRole: string;
   level: string;
@@ -106,4 +107,17 @@ export interface Company {
   logo: string;
   profile_id: string;
   created_at: string;
+
+  description: string;
+  about: string;
+  mission: string;
+  culture: string;
+  salary: string;
+  location: string;
+  jobType: string;
+  industry: string;
+  size: string;
+  founded: number;
+  interviewProcess: string[];
+  preparationTips: string[];
 }

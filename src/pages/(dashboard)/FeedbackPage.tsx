@@ -17,7 +17,7 @@ import {
   QuoteIcon,
   ChevronRightIcon } from
 'lucide-react';
-import { InterviewData } from '../App';
+import { InterviewData } from '../../App';
 interface FeedbackPageProps {
   interview: InterviewData;
   phase: 'technical' | 'behavioral';

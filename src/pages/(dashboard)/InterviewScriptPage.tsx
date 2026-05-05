@@ -8,9 +8,10 @@ import {
   BuildingIcon,
   ClockIcon,
   UsersIcon,
-  ChevronRightIcon } from
-'lucide-react';
-import { InterviewData } from '../App';
+  ChevronRightIcon
+} from
+  'lucide-react';
+import { InterviewData } from '../../App';
 interface InterviewScriptPageProps {
   interview: InterviewData;
   phase: 'technical' | 'behavioral';
@@ -45,18 +46,18 @@ function TypewriterText({
 
 
 
-}: {text: string;onComplete: () => void;}) {
+}: { text: string; onComplete: () => void; }) {
   const [displayed, setDisplayed] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isDone, setIsDone] = useState(false);
   useEffect(() => {
     if (currentIndex < text.length) {
       const delay =
-      text[currentIndex] === '.' ||
-      text[currentIndex] === '!' ||
-      text[currentIndex] === '?' ?
-      80 :
-      18;
+        text[currentIndex] === '.' ||
+          text[currentIndex] === '!' ||
+          text[currentIndex] === '?' ?
+          80 :
+          18;
       const timer = setTimeout(() => {
         setDisplayed((prev) => prev + text[currentIndex]);
         setCurrentIndex((prev) => prev + 1);
@@ -80,13 +81,13 @@ function TypewriterText({
       <p className="text-neutral-700 dark:text-neutral-300 leading-relaxed whitespace-pre-line text-base">
         {displayed}
         {!isDone &&
-        <span className="inline-block w-0.5 h-5 bg-primary-500 ml-0.5 animate-pulse align-middle" />
+          <span className="inline-block w-0.5 h-5 bg-primary-500 ml-0.5 animate-pulse align-middle" />
         }
       </p>
       {!isDone &&
-      <button
-        onClick={skipToEnd}
-        className="mt-4 text-xs text-neutral-400 dark:text-neutral-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors underline">
+        <button
+          onClick={skipToEnd}
+          className="mt-4 text-xs text-neutral-400 dark:text-neutral-500 hover:text-primary-500 dark:hover:text-primary-400 transition-colors underline">
 
           Skip animation →
         </button>
@@ -103,29 +104,29 @@ export function InterviewScriptPage({
   const [scriptReady, setScriptReady] = useState(false);
   const [showContinue, setShowContinue] = useState(false);
   const rawScript =
-  phase === 'technical' ?
-  TECHNICAL_SCRIPTS.default :
-  BEHAVIORAL_SCRIPTS.default;
+    phase === 'technical' ?
+      TECHNICAL_SCRIPTS.default :
+      BEHAVIORAL_SCRIPTS.default;
   const script = rawScript.
-  replace(/{company}/g, interview.company).
-  replace(/{role}/g, interview.role).
-  replace(/{jobType}/g, interview.jobType).
-  replace(/{location}/g, interview.location).
-  replace(/{salary}/g, interview.salary);
+    replace(/{company}/g, interview.company).
+    replace(/{role}/g, interview.role).
+    replace(/{jobType}/g, interview.jobType).
+    replace(/{location}/g, interview.location).
+    replace(/{salary}/g, interview.salary);
   const interviewer =
-  phase === 'technical' ?
-  {
-    name: 'Jordan',
-    title: 'Senior Engineer',
-    avatar: 'J',
-    color: 'bg-primary-500'
-  } :
-  {
-    name: 'Morgan',
-    title: 'HR Manager',
-    avatar: 'M',
-    color: 'bg-secondary-500'
-  };
+    phase === 'technical' ?
+      {
+        name: 'Jordan',
+        title: 'Senior Engineer',
+        avatar: 'J',
+        color: 'bg-primary-500'
+      } :
+      {
+        name: 'Morgan',
+        title: 'HR Manager',
+        avatar: 'M',
+        color: 'bg-secondary-500'
+      };
   useEffect(() => {
     const timer = setTimeout(() => setScriptReady(true), 800);
     return () => clearTimeout(timer);
@@ -148,8 +149,8 @@ export function InterviewScriptPage({
             className={`px-4 py-1.5 rounded-full text-sm font-semibold ${phase === 'technical' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'bg-secondary-100 dark:bg-secondary-900/30 text-secondary-700 dark:text-secondary-300'}`}>
 
             {phase === 'technical' ?
-            '⚙️ Technical Round' :
-            '🤝 Behavioral Round'}
+              '⚙️ Technical Round' :
+              '🤝 Behavioral Round'}
           </span>
           <span className="text-sm text-neutral-500 dark:text-neutral-400">
             Phase {phase === 'technical' ? '1' : '2'} of 2
@@ -160,15 +161,14 @@ export function InterviewScriptPage({
         <div className="bg-white dark:bg-neutral-800 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-700 shadow-card mb-6">
           <div className="flex items-start gap-4">
             <div
-              className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-display font-bold text-xl flex-shrink-0 ${
-              {
-                G: 'bg-blue-500',
-                S: 'bg-indigo-500',
-                A: 'bg-rose-500',
-                M: 'bg-blue-600',
-                N: 'bg-neutral-800',
-                L: 'bg-purple-500'
-              }[interview.logo] || 'bg-primary-500'}`
+              className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-display font-bold text-xl flex-shrink-0 ${{
+                  G: 'bg-blue-500',
+                  S: 'bg-indigo-500',
+                  A: 'bg-rose-500',
+                  M: 'bg-blue-600',
+                  N: 'bg-neutral-800',
+                  L: 'bg-purple-500'
+                }[interview.logo] || 'bg-primary-500'}`
               }>
 
               {interview.logo}
@@ -229,30 +229,30 @@ export function InterviewScriptPage({
           {/* Typing animation */}
           <div className="bg-neutral-50 dark:bg-neutral-700/50 rounded-xl p-4">
             {scriptReady ?
-            <TypewriterText
-              text={script}
-              onComplete={() => setShowContinue(true)} /> :
+              <TypewriterText
+                text={script}
+                onComplete={() => setShowContinue(true)} /> :
 
 
-            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <div className="flex gap-1">
                   <div
-                  className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce"
-                  style={{
-                    animationDelay: '0ms'
-                  }} />
+                    className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce"
+                    style={{
+                      animationDelay: '0ms'
+                    }} />
 
                   <div
-                  className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce"
-                  style={{
-                    animationDelay: '150ms'
-                  }} />
+                    className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce"
+                    style={{
+                      animationDelay: '150ms'
+                    }} />
 
                   <div
-                  className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce"
-                  style={{
-                    animationDelay: '300ms'
-                  }} />
+                    className="w-2 h-2 rounded-full bg-neutral-400 animate-bounce"
+                    style={{
+                      animationDelay: '300ms'
+                    }} />
 
                 </div>
                 <span className="text-sm text-neutral-400 dark:text-neutral-500">
@@ -270,25 +270,25 @@ export function InterviewScriptPage({
           </h3>
           <div className="space-y-2">
             {phase === 'technical' ?
-            [
-            '5 technical questions on data structures & algorithms',
-            'Think out loud — your reasoning matters',
-            'You can ask clarifying questions',
-            'Voice-based answers, no typing needed'] :
+              [
+                '5 technical questions on data structures & algorithms',
+                'Think out loud — your reasoning matters',
+                'You can ask clarifying questions',
+                'Voice-based answers, no typing needed'] :
 
-            [
-            '4 behavioral questions using STAR method',
-            'Share real experiences from your past',
-            'Be authentic — there are no wrong answers',
-            'Focus on what you learned from each experience'].
-            map((item, i) =>
-            <div key={i} className="flex items-start gap-2">
+              [
+                '4 behavioral questions using STAR method',
+                'Share real experiences from your past',
+                'Be authentic — there are no wrong answers',
+                'Focus on what you learned from each experience'].
+                map((item, i) =>
+                  <div key={i} className="flex items-start gap-2">
                     <ChevronRightIcon className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-primary-700 dark:text-primary-300">
                       {item}
                     </span>
                   </div>
-            )}
+                )}
           </div>
         </div>
 

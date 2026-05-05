@@ -1,3 +1,5 @@
+import { Loader2 } from "lucide-react";
+
 export const UnderDevelopmentComponent = ({ children }: { children: React.ReactNode }) => {
     if (import.meta.env.VITE_ENVIRONMENT === "production") {
         return null;
@@ -27,3 +29,13 @@ export const getInitials = (text: String) => {
 
 export const formatTime = (s: number) =>
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+
+export const PageLoader = (text?:string) => (
+  <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+    <div className="text-center">
+      <Loader2 className="w-12 h-12 animate-spin text-primary-500 mx-auto mb-4" />
+      <p className="text-neutral-400">{text ? text : 'Loading'}...</p>
+    </div>
+  </div>
+);

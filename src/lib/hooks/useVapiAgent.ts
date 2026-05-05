@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { vapi } from "../../lib/vapi.sdk";
+import { BehavioralContext, TechnicalContext } from "../types/vapi.context";
 
 export enum CallStatus {
     INACTIVE = "INACTIVE",
@@ -21,6 +22,7 @@ interface UseVapiAgentProps {
     questions?: string[];
     userName?: string;
     jobTarget?: string;
+    variableValues?: TechnicalContext | BehavioralContext | null
     onCallEnd: (messages: Message[]) => void;
     onStatusChange?: (status: CallStatus, speaking?: { isSpeaking: boolean; role?: string }) => void;
     onTranscriptUpdate?: (message: Message) => void;
@@ -31,6 +33,7 @@ export function useVapiAgent({
     questions,
     userName,
     jobTarget,
+    variableValues,
     onCallEnd,
     onStatusChange,
     onTranscriptUpdate
@@ -127,15 +130,16 @@ export function useVapiAgent({
         }
     }, [callStatus, messages, onCallEnd]);
 
-    const startCall = async () => {
+    const startCall = async (variableValues?:TechnicalContext | BehavioralContext) => {
         setStartingCall(true);
         setCallStatus(CallStatus.CONNECTING);
         onStatusChange?.(CallStatus.CONNECTING);
 
         await vapi.start(assistantId, {
             variableValues: {
+                ...variableValues,
                 questions: formattedQuestions,
-                name: userName,
+                userName,
                 jobTarget: jobTarget,
             }
         });
@@ -155,5 +159,6 @@ export function useVapiAgent({
         startingCall,
         startCall,
         endCall,
+        setStartingCall
     };
 }
