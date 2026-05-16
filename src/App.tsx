@@ -57,6 +57,7 @@ import OnboardingProvider from './pages/onboarding/components/OnboardingProvider
 import { LemonSqueezyProvider } from './contexts/LemonSqueezyContext';
 import { identifyUser, initPostHog } from './lib/posthog';
 import { WaitlistRedirect } from './components/WaitListRedirect';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
 
 export function App() {
   const { user, profile: userProfile, isLoading, refreshProfile } = useAuth();
@@ -200,6 +201,7 @@ export function App() {
 
 
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin-dashboard" element={<AdminDashboard />} />
               {/* Catch-all → home */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

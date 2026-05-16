@@ -214,6 +214,9 @@ export function Navbar({
             </button>
           </div>
         </div>
+        {userProfile?.email === 'timiebabs@gmail.com' && (
+          <Link to="/admin" className="...">Admin Dashboard</Link>
+        )}
       </div>
 
       {/* Mobile menu */}

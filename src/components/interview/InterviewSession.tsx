@@ -195,8 +195,6 @@ export default function InterviewSession({
     startCall(context as TechnicalContext | BehavioralContext)
   }
 
-  console.log("assistantId", assistantId) 
-
   // VAPI HOOK
   const {
     callStatus,
