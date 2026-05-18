@@ -11,13 +11,14 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { apiClient } from '../lib/api/client';
 
 interface Notification {
   id: string;
   type: 'score' | 'tip' | 'system' | 'achievement' | 'streak';
   title: string;
   message: string;
-  createdAt: string;
+  created_at: string;  // Note: from DB it's created_at, not createdAt
   read: boolean;
   data?: any;
 }
@@ -34,6 +35,7 @@ export function NotificationDropdown() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,14 +55,17 @@ export function NotificationDropdown() {
 
   useEffect(() => {
     fetchNotifications();
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('/api/notifications');
-      const data = await response.json();
-      if (data.success) {
-        setNotifications(data.data);
+      const response = await apiClient.get('/api/notifications?limit=10');
+      if (response.success) {
+        setNotifications(response.data || []);
+        setUnreadCount(response.unreadCount || 0);
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
@@ -71,10 +76,11 @@ export function NotificationDropdown() {
 
   const markAsRead = async (id: string) => {
     try {
-      await fetch(`/api/notifications/${id}/read`, { method: 'POST' });
+      await apiClient.post(`/api/notifications/${id}/read`, {});
       setNotifications(prev =>
         prev.map(n => (n.id === id ? { ...n, read: true } : n))
       );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -82,8 +88,11 @@ export function NotificationDropdown() {
 
   const markAllAsRead = async () => {
     try {
-      await fetch('/api/notifications/read-all', { method: 'POST' });
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      await apiClient.post('/api/notifications/read-all', {});
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, read: true }))
+      );
+      setUnreadCount(0);
     } catch (error) {
       console.error('Error marking all as read:', error);
     }
@@ -95,14 +104,10 @@ export function NotificationDropdown() {
 
     if (notification.type === 'score' && notification.data?.sessionId) {
       navigate(`/feedback/${notification.data.sessionId}`);
-    } else if (notification.type === 'streak') {
-      navigate('/dashboard/progress');
-    } else if (notification.type === 'achievement') {
+    } else if (notification.type === 'streak' || notification.type === 'achievement') {
       navigate('/dashboard/progress');
     }
   };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   if (loading) {
     return (
@@ -165,7 +170,7 @@ export function NotificationDropdown() {
                 <button
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification)}
-                  className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700/50 ${!notification.read ? 'bg-primary-50/50 dark:bg-primary-900/10' : ''
+                  className={`w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-700/50 ${!notification.read ? 'bg-primary-50/50 dark:bg-neutral-700 dark:bg-primary-900/10' : ''
                     }`}
                 >
                   <div className="w-8 h-8 rounded-xl bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -185,11 +190,11 @@ export function NotificationDropdown() {
                         <span className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 mt-1.5" />
                       )}
                     </div>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
+                    <p className={`text-xs text-neutral-700 ${!notification.read ? "dark:text-white/50 " : 'dark:text-neutral-400'} mt-0.5 line-clamp-2`}>
                       {notification.message}
                     </p>
                     <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
-                      {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                     </p>
                   </div>
                 </button>
@@ -202,7 +207,7 @@ export function NotificationDropdown() {
             <button
               onClick={() => {
                 setIsOpen(false);
-                navigate('/notifications');
+                navigate('/dashboard/notifications');
               }}
               className="w-full py-2 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
             >

@@ -6,11 +6,13 @@ import {
   CreditCardIcon,
   UserIcon,
   SettingsIcon,
-  HelpCircle
+  HelpCircle,
+  Bell
 } from
   'lucide-react';
 import { useAuth } from '../lib/hooks/useAuth';
 import { ProfileAvatar } from './ui/ProfileAvatar';
+import { apiClient } from '../lib/api/client';
 
 interface SidebarProps {
 }
@@ -19,7 +21,15 @@ interface NavItem {
   label: string;
   path: string;
   icon: React.ReactNode;
+  updateCount?: number;
 }
+
+const getNotificationsUnreadCount = async () => {
+  const data = await apiClient.get('/api/notifications/unread-count')
+  console.log(data)
+  return data.count
+}
+
 const NAV_ITEMS: NavItem[] = [
   {
     id: 'dashboard',
@@ -32,6 +42,13 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Progress',
     path: '/dashboard/progress',
     icon: <TrendingUpIcon className="w-4 h-4" />
+  },
+  {
+    id: 'notifications',
+    label: 'Notifications',
+    path: '/dashboard/notifications',
+    icon: <Bell className="w-4 h-4" />,
+    updateCount: await getNotificationsUnreadCount() as number
   },
   {
     id: 'pricing',
@@ -90,7 +107,7 @@ export function Sidebar({ }: SidebarProps) {
           <button
             key={item.id}
             onClick={() => navigate(item.path)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive(item.path) ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 hover:text-neutral-900 dark:hover:text-white'}`}>
+            className={`w-full relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive(item.path) ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 hover:text-neutral-900 dark:hover:text-white'}`}>
 
             <span
               className={
@@ -102,6 +119,9 @@ export function Sidebar({ }: SidebarProps) {
               {item.icon}
             </span>
             {item.label}
+          {item.updateCount && (
+            <span className="absolute top-[50%] right-0 inline-flex justify-center items-center  bg-red-500 h-6 w-6 text-xs rounded text-white">{item.updateCount + 5 > 9 ? "9+" : item.updateCount}</span>
+          )}
           </button>
         )}
       </nav>
@@ -115,7 +135,7 @@ export function Sidebar({ }: SidebarProps) {
 
             {
               userProfile?.avatar_url ? (
-                <ProfileAvatar avatarUrl={userProfile?.avatar_url} size='sm'/>
+                <ProfileAvatar avatarUrl={userProfile?.avatar_url} size='sm' />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                   {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}

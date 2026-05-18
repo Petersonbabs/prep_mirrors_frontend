@@ -42,7 +42,8 @@ const SIDEBAR_PATHS = [
   '/dashboard/account',
   '/dashboard/billing',
   '/dashboard/settings',
-  '/dashboard/support'
+  '/dashboard/support',
+  '/dashboard/notifications'
 ];
 
 // Supabase client is imported from ./lib/supabase

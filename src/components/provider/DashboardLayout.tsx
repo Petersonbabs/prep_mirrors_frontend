@@ -14,6 +14,7 @@ import BillingPage from "../../pages/(dashboard)/BillingPage"
 import { SupportPage } from "../../pages/(public)/support"
 import { DashboardSupportPage } from "../../pages/(dashboard)/support"
 import { InterviewFlow } from "../../pages/(dashboard)/InterviewFlow"
+import { NotificationsPage } from "../dashboard/NotificationsPage"
 
 const DashboardLayout = () => {
     const [showWalkthrough, setShowWalkthrough] = useState(false);
@@ -136,6 +137,8 @@ const DashboardLayout = () => {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/support" element={<DashboardSupportPage />} />
                 <Route path="/interview/:companyId" element={<InterviewFlow />} />
+
+                <Route path="/notifications" element={<NotificationsPage />} />
             </Routes>
         </div>
     )
