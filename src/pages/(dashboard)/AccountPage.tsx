@@ -372,11 +372,11 @@ function BillingSection() {
 function SecuritySection() {
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-900 mb-6">Security</h2>
+      <h2 className="text-xl font-bold  mb-6">Security</h2>
       <div className="space-y-5">
         <div>
           <label
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium  mb-1.5"
             htmlFor="currentPassword">
 
             Current Password
@@ -385,12 +385,12 @@ function SecuritySection() {
             id="currentPassword"
             type="password"
             placeholder="••••••••"
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300  text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
 
         </div>
         <div>
           <label
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium  mb-1.5"
             htmlFor="newPassword">
 
             New Password
@@ -399,12 +399,12 @@ function SecuritySection() {
             id="newPassword"
             type="password"
             placeholder="••••••••"
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
 
         </div>
         <div>
           <label
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium  mb-1.5"
             htmlFor="confirmPassword">
 
             Confirm New Password
@@ -413,7 +413,7 @@ function SecuritySection() {
             id="confirmPassword"
             type="password"
             placeholder="••••••••"
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" />
 
         </div>
         <div className="pt-2">
@@ -466,18 +466,18 @@ function NotificationsSection() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-gray-900 mb-6">
+      <h2 className="text-xl font-bold  mb-6">
         Notification Preferences
       </h2>
       <div className="space-y-4">
         {items.map((item) =>
           <div
             key={item.key}
-            className="flex items-start justify-between gap-4 p-4 bg-gray-50 rounded-xl">
+            className="flex dark:bg-neutral-700 items-start justify-between gap-4 p-4 bg-gray-50 rounded-xl">
 
             <div>
-              <p className="text-sm font-medium text-gray-900">{item.label}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>
+              <p className="text-sm font-medium ">{item.label}</p>
+              <p className="text-xs opacity-70  mt-0.5">{item.description}</p>
             </div>
             <button
               role="switch"

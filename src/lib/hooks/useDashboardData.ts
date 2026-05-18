@@ -7,7 +7,6 @@ export function useDashboardData() {
     const { user, profile } = useAuth();
     const [subscription, setSubscription] = useState<Subscription | null>(null);
     const [loading, setLoading] = useState(true);
-    const [streak, setStreak] = useState(4);
     const [stats, setStats] = useState({
         interviewsDone: 0,
         questionsAnswered: 0,
@@ -31,7 +30,6 @@ export function useDashboardData() {
     return {
         subscription,
         loading,
-        streak,
         stats,
         firstName: user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there',
     };

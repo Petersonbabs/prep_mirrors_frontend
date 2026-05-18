@@ -19,7 +19,9 @@ import { RefreshCompaniesButton } from '../../components/dashboard/RefreshCompan
 import { RequiredInfoModal } from '../../components/dashboard/RequiredInfoModal';
 import { userApi } from '../../lib/api/users';
 import { useNavigate } from 'react-router-dom';
-const InterviewFlow = lazy(() => import('./InterviewFlow').then(module => ({ default: module.InterviewFlow })));
+import { usePushNotifications } from '../../lib/hooks/usePushNotifications';
+import { PushPermissionPrompt } from '../../components/ui/PushPermissionPrompt';
+
 
 interface DashboardPageProps {
   onStartInterview: (interview: any) => void;
@@ -44,7 +46,7 @@ const DashboardSkeleton = () => (
 );
 
 export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
-  const { subscription, loading, streak, stats, firstName } = useDashboardData();
+  const { subscription, loading, stats, firstName } = useDashboardData();
   const { user, profile, refreshProfile } = useAuth();
   const [filter, setFilter] = useState<'all' | 'Easy' | 'Medium' | 'Hard'>('all');
   const [showWalkthrough, setShowWalkthrough] = useState(false);
@@ -54,12 +56,23 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
   const [hasRequiredInfo, setHasRequiredInfo] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
+  const { isSubscribed, permission } = usePushNotifications();
+  const [showPushPrompt, setShowPushPrompt] = useState(false);
   const timeOfDay = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
   const navigate = useNavigate();
 
   const handleStartInterview = (companyId: string, companyName: string) => {
     navigate(`/interview/${companyId}`, { state: { companyName } });
   };
+
+  console.log("isSubscribed", isSubscribed)
+  console.log("permission", permission)
+
+  useEffect(() => {
+    if (  !isSubscribed && permission !== 'denied') {
+      setShowPushPrompt(true);
+    }
+  }, [stats?.interviewsDone, isSubscribed, permission]);
 
   useEffect(() => {
     const checkRequiredInfo = async () => {
@@ -236,7 +249,7 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
 
               <div className="space-y-3">
                 {filteredInterviews.map((interview, i) => (
-                  <InterviewCard key={interview.id} interview={interview} index={i}  />
+                  <InterviewCard key={interview.id} interview={interview} index={i} />
                 ))}
               </div>
             </div>
@@ -244,7 +257,7 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
             {/* Right Column - Sidebar */}
             <div className="progress-section space-y-4">
               <SubscriptionCard subscription={subscription} />
-              <StreakTracker streak={streak} />
+              <StreakTracker />
               <OutcomeTracker />
               <RecentActivity />
               <Achievements />
@@ -261,6 +274,10 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
           onSave={handleSaveRequiredInfo}
           isLoading={generating}
         />
+      )}
+
+      {showPushPrompt && (
+        <PushPermissionPrompt onClose={() => setShowPushPrompt(false)} />
       )}
     </>
   );
