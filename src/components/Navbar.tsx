@@ -24,7 +24,7 @@ export function Navbar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const { subscription, loading } = useDashboardData();
+  const { subscription } = useDashboardData();
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
@@ -41,7 +41,7 @@ export function Navbar({
     theme === 'dark' ? MoonIcon : theme === 'light' ? SunIcon : MonitorIcon;
   return (
     <nav
-      className={`fixed z-50 top-0 right-0 z-50 transition-all duration-300 ${showSidebar ? 'left-0 md:left-56' : 'left-0'} ${scrolled || !isHome ? 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-sm border-b border-neutral-100 dark:border-neutral-800' : 'bg-transparent'}`}>
+      className={`fixed z-50 top-0 right-0 transition-all duration-300 ${showSidebar ? 'left-0 md:left-56' : 'left-0'} ${scrolled || !isHome ? 'bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md shadow-sm border-b border-neutral-100 dark:border-neutral-800' : 'bg-transparent'}`}>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">

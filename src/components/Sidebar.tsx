@@ -26,7 +26,6 @@ interface NavItem {
 
 const getNotificationsUnreadCount = async () => {
   const data = await apiClient.get('/api/notifications/unread-count')
-  console.log(data)
   return data.count
 }
 
@@ -120,7 +119,7 @@ export function Sidebar({ }: SidebarProps) {
             </span>
             {item.label}
           {item.updateCount && (
-            <span className="absolute top-[50%] right-0 inline-flex justify-center items-center  bg-red-500 h-6 w-6 text-xs rounded text-white">{item.updateCount + 5 > 9 ? "9+" : item.updateCount}</span>
+            <span className="absolute top right-3 inline-flex justify-center items-center  bg-red-500 h-6 w-6 text-xs rounded-xl text-white">{item.updateCount > 9 ? "9+" : item.updateCount}</span>
           )}
           </button>
         )}

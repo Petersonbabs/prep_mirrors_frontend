@@ -21,6 +21,7 @@ export function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [read, setRead] = useState<string[]>([]);
 
   useEffect(() => {
     fetchNotifications();
@@ -46,6 +47,7 @@ export function NotificationsPage() {
 
   const markAsRead = async (id: string) => {
     try {
+      setRead(prev => [...prev, id])
       await apiClient.post(`/api/notifications/${id}/read`, {});
       setNotifications(prev =>
         prev.map(n => (n.id === id ? { ...n, read: true } : n))
@@ -101,8 +103,8 @@ export function NotificationsPage() {
                   }
                 }}
                 className={`p-4 rounded-xl cursor-pointer transition-colors ${
-                  !notification.read
-                    ? 'bg-primary-50 dark:bg-primary-900/20 border-l-4 border-primary-500'
+                  !notification.read && !read.includes(notification.id)
+                    ? 'bg-primary-50 dark:bg-primary-100/30 border-l-4 border-primary-500'
                     : 'bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50'
                 }`}
               >

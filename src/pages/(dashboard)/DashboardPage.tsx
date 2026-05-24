@@ -21,6 +21,7 @@ import { userApi } from '../../lib/api/users';
 import { useNavigate } from 'react-router-dom';
 import { usePushNotifications } from '../../lib/hooks/usePushNotifications';
 import { PushPermissionPrompt } from '../../components/ui/PushPermissionPrompt';
+import { UnderDevelopmentComponent } from '../../utils/utils';
 
 
 interface DashboardPageProps {
@@ -69,7 +70,7 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
   console.log("permission", permission)
 
   useEffect(() => {
-    if (  !isSubscribed && permission !== 'denied') {
+    if (!isSubscribed && permission !== 'denied') {
       setShowPushPrompt(true);
     }
   }, [stats?.interviewsDone, isSubscribed, permission]);
@@ -258,10 +259,12 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
             <div className="progress-section space-y-4">
               <SubscriptionCard subscription={subscription} />
               <StreakTracker />
+              <UnderDevelopmentComponent>
               <OutcomeTracker />
-              <RecentActivity />
-              <Achievements />
-              <TipOfTheDay />
+                <RecentActivity />
+                <Achievements />
+                <TipOfTheDay />
+              </UnderDevelopmentComponent>
             </div>
           </div>
         </div>
