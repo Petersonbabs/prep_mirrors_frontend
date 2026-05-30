@@ -25,8 +25,8 @@ interface NavItem {
 }
 
 const getNotificationsUnreadCount = async () => {
-  const data = await apiClient.get('/api/notifications/unread-count')
-  return data.count
+  // const data = await apiClient.get('/api/notifications/unread-count')
+  return 0
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -47,7 +47,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Notifications',
     path: '/dashboard/notifications',
     icon: <Bell className="w-4 h-4" />,
-    updateCount: await getNotificationsUnreadCount() as number
+    // updateCount: 
   },
   {
     id: 'pricing',
@@ -118,9 +118,9 @@ export function Sidebar({ }: SidebarProps) {
               {item.icon}
             </span>
             {item.label}
-          {item.updateCount && (
-            <span className="absolute top right-3 inline-flex justify-center items-center  bg-red-500 h-6 w-6 text-xs rounded-xl text-white">{item.updateCount > 9 ? "9+" : item.updateCount}</span>
-          )}
+            {item.updateCount && (
+              <span className="absolute top right-3 inline-flex justify-center items-center  bg-red-500 h-6 w-6 text-xs rounded-xl text-white">{item.updateCount > 9 ? "9+" : item.updateCount}</span>
+            )}
           </button>
         )}
       </nav>
