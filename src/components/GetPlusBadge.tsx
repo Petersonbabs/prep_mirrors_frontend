@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { SparklesIcon } from 'lucide-react';
 import { subscriptionApi } from '../lib/api/subscription';
 import { useAuth } from '../lib/hooks/useAuth';
@@ -7,7 +6,6 @@ interface GetPlusBadgeProps {
   compact?: boolean;
 }
 export function GetPlusBadge({ compact = false }: GetPlusBadgeProps) {
-  const navigate = useNavigate();
   const [loadingUpgrade, setLoadingUpgrade] = useState(false);
   const { user } = useAuth();
   const handleUpgrade = async () => {
@@ -21,10 +19,10 @@ export function GetPlusBadge({ compact = false }: GetPlusBadgeProps) {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error('No checkout URL returned');
+        
       }
     } catch (error) {
-      console.error('Error creating checkout:', error);
+      
     } finally {
       setLoadingUpgrade(false);
     }
@@ -40,7 +38,7 @@ export function GetPlusBadge({ compact = false }: GetPlusBadgeProps) {
         className={`${compact ? 'w-3 h-3' : 'w-4 h-4'} transition-transform group-hover:rotate-12`} />
 
       <span className="font-display font-bold tracking-tight">
-        {loadingUpgrade ? 'Processing...' : 'Get Plus'}
+        {loadingUpgrade ? 'Processing...' : 'Get Unlimited'}
       </span>
     </button>);
 

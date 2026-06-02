@@ -12,7 +12,7 @@ import {
   'lucide-react';
 import { useAuth } from '../lib/hooks/useAuth';
 import { ProfileAvatar } from './ui/ProfileAvatar';
-import { apiClient } from '../lib/api/client';
+// import { apiClient } from '../lib/api/client';
 
 interface SidebarProps {
 }
@@ -24,10 +24,10 @@ interface NavItem {
   updateCount?: number;
 }
 
-const getNotificationsUnreadCount = async () => {
-  // const data = await apiClient.get('/api/notifications/unread-count')
-  return 0
-}
+// const getNotificationsUnreadCount = async () => {
+//   // const data = await apiClient.get('/api/notifications/unread-count')
+//   return 0
+// }
 
 const NAV_ITEMS: NavItem[] = [
   {
