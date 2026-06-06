@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Provider } from '@supabase/supabase-js';
 import { useLocation } from 'react-router-dom';
+import { UnderDevelopmentComponent } from '../utils/utils';
 
 interface AuthPageProps {
   onContinue: () => void;
@@ -302,6 +303,7 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
               <ArrowRightIcon className="w-4 h-4 text-neutral-300 dark:text-neutral-600 group-hover:text-neutral-500 dark:group-hover:text-neutral-400 transition-colors" />
             </button>
 
+            <UnderDevelopmentComponent>
             {/* LinkedIn */}
             <button
               onClick={onContinue}
@@ -340,7 +342,6 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
               </span>
               <ArrowRightIcon className="w-4 h-4 text-neutral-300 dark:text-neutral-600 group-hover:text-neutral-500 dark:group-hover:text-neutral-400 transition-colors" />
             </button>
-
             {/* Divider */}
             <div className="flex items-center gap-3 py-1">
               <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
@@ -368,7 +369,6 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
                 Continue with Email
               </button>
             </div>
-
             {/* Skip */}
             <button
               onClick={onContinue}
@@ -376,6 +376,10 @@ export function AuthPage({ onContinue, onBack }: AuthPageProps) {
 
               Skip for now, continue as guest →
             </button>
+            </UnderDevelopmentComponent>
+
+
+
           </div>
 
           {/* Legal */}

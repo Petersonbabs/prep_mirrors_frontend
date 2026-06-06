@@ -4,7 +4,6 @@ import { Feedback } from "../types";
 import { SessionPhase } from "../types/interview.types";
 import { apiClient } from "./client";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4444';
 
 export interface GenerateQuestionResponse {
   success: boolean;

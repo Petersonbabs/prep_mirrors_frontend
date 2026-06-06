@@ -291,10 +291,10 @@ export default function OnboardingFeedbackScreen({
       </div>
 
       {/* Suggested Practice */}
-      <div className="bg-primary-50 dark:bg-primary-900/20 rounded-2xl p-4 mb-6 border border-primary-200 dark:border-primary-800">
+      <div className="bg-primary-50 rounded-2xl p-4 mb-6 border border-primary-200 dark:border-primary-800">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-lg">🎯</span>
-          <h3 className="font-semibold text-primary-800 dark:text-primary-300">Recommended Practice</h3>
+          <h3 className="font-semibold text-primary-500 dark:text-primary-500">Recommended Practice</h3>
         </div>
         <p className="font-medium text-primary-700 dark:text-primary-300 text-sm">{feedbackData.suggested_practice.title}</p>
         <p className="text-primary-600 dark:text-primary-400 text-sm mt-1">{feedbackData.suggested_practice.description}</p>

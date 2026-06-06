@@ -1,6 +1,6 @@
 import { Company } from "../types";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4444';
+const API_URL = import.meta.env.VITE_API_URL
 
 export const companiesApi = {
     getUserCompanies: async (profileId: string) => {

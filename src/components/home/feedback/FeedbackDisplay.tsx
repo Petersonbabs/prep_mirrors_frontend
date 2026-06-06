@@ -246,7 +246,7 @@ export default function FeedbackDisplay({ feedback, question, onImprove, onNext 
             <div className="bg-primary-50 dark:bg-primary-900/20 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
                     <LightbulbIcon className="w-5 h-5 text-primary-600" />
-                    <h3 className="font-semibold text-primary-800 dark:text-primary-400">Quick Tips to Improve</h3>
+                    <h3 className="font-semibold text-primary-800 dark:text-primary-500">Quick Tips to Improve</h3>
                 </div>
                 <ul className="space-y-2">
                     {feedback.quick_tips.map((tip, i) => (

@@ -5,16 +5,16 @@ const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.log('Push notifications not supported');
+    
     return null;
   }
   
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('Service Worker registered');
+    
     return registration;
   } catch (error) {
-    console.error('Service Worker registration failed:', error);
+    
     return null;
   }
 }
@@ -24,7 +24,7 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration): 
     // Request permission
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-      console.log('Notification permission denied');
+      
       return false;
     }
     
@@ -44,10 +44,10 @@ export async function subscribeToPush(registration: ServiceWorkerRegistration): 
       userAgent: navigator.userAgent,
     });
     
-    console.log('Push subscription saved');
+    
     return true;
   } catch (error) {
-    console.error('Push subscription failed:', error);
+    
     return false;
   }
 }
@@ -61,7 +61,7 @@ export async function unsubscribeFromPush(): Promise<boolean> {
     await apiClient.post('/api/push/unsubscribe', {
       endpoint: subscription.endpoint,
     });
-    console.log('Unsubscribed from push');
+    
     return true;
   }
   

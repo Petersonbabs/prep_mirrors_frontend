@@ -1,7 +1,7 @@
 import { AiProvider, FeedbackResponse } from "../types";
 
 // frontend/src/lib/api/onboarding.ts
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4444';
+const API_URL = import.meta.env.VITE_API_URL 
 
 export interface generateQuestionsParams {
   profileId: string,

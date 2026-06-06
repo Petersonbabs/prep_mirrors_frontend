@@ -1,7 +1,7 @@
 // frontend/src/lib/api/client.ts
 import { supabase } from "../supabase";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4444';
+const API_URL = import.meta.env.VITE_API_URL 
 
 export const apiClient = {
   async request(endpoint: string, options: RequestInit = {}) {

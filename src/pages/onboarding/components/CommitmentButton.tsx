@@ -85,7 +85,7 @@ function CommitButton({ onCommit }: { onCommit: () => void; }) {
             <CheckIcon className="w-10 h-10 text-white" /> :
 
             <img
-              src="/[favicon]-Prep-mirror-white-bg.png"
+              src="/Prep-mirror-white-bg.webp"
               alt="PrepMirrors"
               className="w-12 h-12 rounded-full"
               draggable={false} />

@@ -9,7 +9,7 @@ export interface Subscription {
     resetDate?: string;
     price: number
 }
-const API_URL = import.meta.env.API_URL || 'http://localhost:4444';
+const API_URL = import.meta.env.API_URL 
 
 export const subscriptionApi = {
     getStatus: async (userId: string): Promise<{ success: boolean; data?: Subscription; error?: string }> => {
