@@ -48,7 +48,7 @@ export function InterviewFlow() {
                     interviewApi.getSession(companyId as string)
                 ]);
 
-                console.log("sessionData", sessionData)
+                
                 if (companyData.success) {
                     setCompany(companyData.data);
                 }
@@ -61,7 +61,7 @@ export function InterviewFlow() {
                 // Fetch questions based on current phase
                 await fetchQuestions();
             } catch (error) {
-                console.error('Error fetching data:', error);
+                
             } finally {
                 setLoading(false);
             }
@@ -85,7 +85,7 @@ export function InterviewFlow() {
                 setBehavioralQuestions(behavQuestions.questions);
             }
         } catch (error) {
-            console.error('Error fetching questions:', error);
+            
         }
     };
 
@@ -141,7 +141,7 @@ export function InterviewFlow() {
         return <StepLoader />;
     }
 
-    console.log(step)
+    
 
     // Render based on current step
     switch (step) {

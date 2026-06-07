@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboardIcon,
@@ -8,14 +8,12 @@ import {
   SettingsIcon,
   HelpCircle,
   Bell
-} from
-  'lucide-react';
+} from 'lucide-react';
 import { useAuth } from '../lib/hooks/useAuth';
 import { ProfileAvatar } from './ui/ProfileAvatar';
-// import { apiClient } from '../lib/api/client';
+import { apiClient } from '../lib/api/client';
 
-interface SidebarProps {
-}
+interface SidebarProps {}
 interface NavItem {
   id: string;
   label: string;
@@ -24,76 +22,90 @@ interface NavItem {
   updateCount?: number;
 }
 
-// const getNotificationsUnreadCount = async () => {
-//   // const data = await apiClient.get('/api/notifications/unread-count')
-//   return 0
-// }
 
-const NAV_ITEMS: NavItem[] = [
-  {
-    id: 'dashboard',
-    label: 'Dashboard',
-    path: '/dashboard',
-    icon: <LayoutDashboardIcon className="w-4 h-4" />
-  },
-  {
-    id: 'progress',
-    label: 'Progress',
-    path: '/dashboard/progress',
-    icon: <TrendingUpIcon className="w-4 h-4" />
-  },
-  {
-    id: 'notifications',
-    label: 'Notifications',
-    path: '/dashboard/notifications',
-    icon: <Bell className="w-4 h-4" />,
-    // updateCount: 
-  },
-  {
-    id: 'pricing',
-    label: 'Billing',
-    path: '/dashboard/billing',
-    icon: <CreditCardIcon className="w-4 h-4" />
-  },
-  {
-    id: 'account',
-    label: 'Account',
-    path: '/dashboard/account',
-    icon: <UserIcon className="w-4 h-4" />
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
-    path: '/dashboard/settings',
-    icon: <SettingsIcon className="w-4 h-4" />
-  },
-
-  {
-    id: 'support',
-    label: 'Help & Support',
-    path: '/dashboard/support',
-    icon: <HelpCircle className="w-4 h-4" />
-  }
-];
-
-export function Sidebar({ }: SidebarProps) {
+export function Sidebar({}: SidebarProps) {
   const { profile: userProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetchUnreadCount();
+    // Poll every 30 seconds for new notifications
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const data = await apiClient.get('/api/notifications/unread-count');
+      setUnreadCount(data.count || 0);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  };
+
   const isActive = (path: string) => location.pathname === path;
+
+  const NAV_ITEMS: NavItem[] = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: <LayoutDashboardIcon className="w-4 h-4" />
+    },
+    {
+      id: 'progress',
+      label: 'Progress',
+      path: '/dashboard/progress',
+      icon: <TrendingUpIcon className="w-4 h-4" />
+    },
+    {
+      id: 'notifications',
+      label: 'Notifications',
+      path: '/dashboard/notifications',
+      icon: <Bell className="w-4 h-4" />,
+      updateCount: unreadCount
+    },
+    {
+      id: 'pricing',
+      label: 'Billing',
+      path: '/dashboard/billing',
+      icon: <CreditCardIcon className="w-4 h-4" />
+    },
+    {
+      id: 'account',
+      label: 'Account',
+      path: '/dashboard/account',
+      icon: <UserIcon className="w-4 h-4" />
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      path: '/dashboard/settings',
+      icon: <SettingsIcon className="w-4 h-4" />
+    },
+    {
+      id: 'support',
+      label: 'Help & Support',
+      path: '/dashboard/support',
+      icon: <HelpCircle className="w-4 h-4" />
+    }
+  ];
+
   return (
     <aside className="hidden md:flex flex-col w-56 h-screen bg-white dark:bg-neutral-800 border-r border-neutral-100 dark:border-neutral-700 fixed left-0 top-0 z-40">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-neutral-100 dark:border-neutral-700">
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2.5 group">
-
+          className="flex items-center gap-2.5 group"
+        >
           <img
             src="/[favicon]-Prep-mirror-white-bg.png"
             alt="Prep Mirrors"
-            className="w-8 h-8 rounded-lg" />
-
+            className="w-8 h-8 rounded-lg"
+          />
           <span className="font-display font-bold text-lg text-neutral-900 dark:text-white">
             Prep<span className="text-primary-500">Mirrors</span>
           </span>
@@ -102,45 +114,43 @@ export function Sidebar({ }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) =>
+        {NAV_ITEMS.map((item) => (
           <button
             key={item.id}
             onClick={() => navigate(item.path)}
-            className={`w-full relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive(item.path) ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 hover:text-neutral-900 dark:hover:text-white'}`}>
-
-            <span
-              className={
-                isActive(item.path) ?
-                  'text-primary-500' :
-                  'text-neutral-400 dark:text-neutral-500'
-              }>
-
+            className={`w-full relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              isActive(item.path) 
+                ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' 
+                : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            <span className={isActive(item.path) ? 'text-primary-500' : 'text-neutral-400 dark:text-neutral-500'}>
               {item.icon}
             </span>
             {item.label}
-            {item.updateCount && (
-              <span className="absolute top right-3 inline-flex justify-center items-center  bg-red-500 h-6 w-6 text-xs rounded-xl text-white">{item.updateCount > 9 ? "9+" : item.updateCount}</span>
+            {item.updateCount !== undefined && item.updateCount > 0 && (
+              <span className="absolute right-3 inline-flex justify-center items-center bg-red-500 h-5 w-5 text-xs rounded-full text-white">
+                {item.updateCount > 9 ? "9+" : item.updateCount}
+              </span>
             )}
           </button>
-        )}
+        ))}
       </nav>
 
       {/* User info at bottom */}
-      {userProfile &&
+      {userProfile && (
         <div className="px-3 py-4 border-t border-neutral-100 dark:border-neutral-700">
           <button
-            onClick={() => navigate('dashboard/account')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors">
-
-            {
-              userProfile?.avatar_url ? (
-                <ProfileAvatar avatarUrl={userProfile?.avatar_url} size='sm' />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                  {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
-              )
-            }
+            onClick={() => navigate('/dashboard/account')}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+          >
+            {userProfile?.avatar_url ? (
+              <ProfileAvatar avatarUrl={userProfile?.avatar_url} size='sm' />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+            )}
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-medium text-neutral-900 dark:text-white truncate">
                 {userProfile.name || 'User'}
@@ -151,7 +161,7 @@ export function Sidebar({ }: SidebarProps) {
             </div>
           </button>
         </div>
-      }
-    </aside>);
-
+      )}
+    </aside>
+  );
 }

@@ -9,6 +9,7 @@ import Timer from "../ui/Timer";
 import { BehavioralContext, buildTechnicalContext, TechnicalContext } from "../../lib/types/vapi.context";
 import { companiesApi } from "../../lib/api/companies";
 import { SessionPhase } from "../../lib/types/interview.types";
+import { useAuth } from "../../lib/hooks/useAuth";
 
 interface AIInterviewer {
   name: string;
@@ -65,6 +66,7 @@ export default function InterviewSession({
   const [processingAnswer, setProcessingAnswer] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
   const [variableValues, setvariableValues] = useState<TechnicalContext | BehavioralContext | null>(null)
+  const { user:userData} = useAuth();
 
   const transcriptRef = useRef<HTMLDivElement>(null);
   const userName = user?.name?.split(' ')[0] || 'You';
@@ -73,7 +75,7 @@ export default function InterviewSession({
     ? import.meta.env.VITE_VAPI_TECHNICAL_ASSISTANT_ID
     : import.meta.env.VITE_VAPI_BEHAVIORAL_ASSISTANT_ID;
 
-    console.log("beh", import.meta.env.VITE_VAPI_BEHAVIORAL_ASSISTANT_ID)
+    
 
   // Auto-scroll transcript on new messages
   useEffect(() => {
@@ -91,6 +93,7 @@ export default function InterviewSession({
       setUserAnswers(prev => [...prev, message.content]);
     }
   };
+
 
   const handleCallEnd = async (messages: Array<{ role: string; content: string }>) => {
     if (callEnded) return;
@@ -119,7 +122,7 @@ export default function InterviewSession({
           questions,
           answers,
           transcript: conversation,
-          userId: user.id as string
+          userId: userData?.id as string
         });
         finalSessionId = response.sessionId;
         setSessionId(finalSessionId);
@@ -153,7 +156,7 @@ export default function InterviewSession({
       });
 
     } catch (error) {
-      console.error('Error saving interview:', error);
+      
     } finally {
       setProcessingAnswer(false);
     }
@@ -453,7 +456,7 @@ export default function InterviewSession({
             <div className="flex items-center gap-2 bg-primary-900/40 border border-primary-800 rounded-xl px-4 py-2.5">
               <span className="text-base">🎤</span>
               <p className="text-primary-400 text-sm font-medium">
-                Click the button below to start your {phase} interview
+                Click the button below to start your {phase == 'behavioral_interview' ? 'behavioral' : 'technical'} interview
               </p>
             </div>
             <button

@@ -82,7 +82,7 @@ export const interviewApi = {
     try {
       return await apiClient.get(`/api/interview/session/${companyId}`);
     } catch (error) {
-      console.error('Error getting session:', error);
+      
       return { success: true, session: null };
     }
   },
@@ -94,7 +94,7 @@ export const interviewApi = {
     try {
       return await apiClient.get(`/api/interview/session/${companyId}/questions/${phase}`);
     } catch (error) {
-      console.error('Error getting questions:', error);
+      
       return { success: true, questions: [] };
     }
   },

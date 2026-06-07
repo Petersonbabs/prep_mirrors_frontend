@@ -9,11 +9,12 @@ export interface Subscription {
     resetDate?: string;
     price: number
 }
-const API_URL = import.meta.env.API_URL 
+const API_URL = import.meta.env.VITE_API_URL 
 
 export const subscriptionApi = {
     getStatus: async (userId: string): Promise<{ success: boolean; data?: Subscription; error?: string }> => {
         try {
+            
             const response = await fetch(`${API_URL}/api/subscription/status/${userId}`);
             return await response.json();
         } catch (error) {

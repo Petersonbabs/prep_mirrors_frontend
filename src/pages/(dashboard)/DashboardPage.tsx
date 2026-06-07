@@ -66,8 +66,8 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
     navigate(`/interview/${companyId}`, { state: { companyName } });
   };
 
-  console.log("isSubscribed", isSubscribed)
-  console.log("permission", permission)
+  
+  
 
   useEffect(() => {
     if (!isSubscribed && permission !== 'denied') {
@@ -129,7 +129,7 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
   const loadCompanies = async () => {
     setLoadingCompanies(true);
     const response = await companiesApi.getUserCompanies(user?.id as string);
-    console.log("user companiews: ", response)
+    
     if (response.success && response.companies.length > 0) {
       setCompanies(response.companies);
     } else {
@@ -183,12 +183,12 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
 
   return (
     <>
-      {showWalkthrough && (
+      {/* {showWalkthrough && (
         <DashboardWalkthrough
           firstName={firstName}
           onComplete={handleWalkthroughComplete}
         />
-      )}
+      )} */}
 
       <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

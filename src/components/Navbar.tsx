@@ -37,6 +37,7 @@ export function Navbar({
   const isLoggedIn = !!userProfile;
   const isHome = location.pathname === '/';
   const pathName = location.pathname
+  
   const ThemeIcon =
     theme === 'dark' ? MoonIcon : theme === 'light' ? SunIcon : MonitorIcon;
   return (
@@ -47,7 +48,7 @@ export function Navbar({
         <div className="flex items-center justify-between h-16">
           {/* Logo - hide on desktop when sidebar is showing */}
           <Link
-            to="/"
+            to={`${pathName.includes('dashboard') ? '/dashboard' : '/'}`}
             onClick={() => navigate(isLoggedIn ? '/dashboard' : '/')}
             className={`flex items-center gap-2.5 group ${showSidebar ? 'md:hidden' : ''}`}>
 

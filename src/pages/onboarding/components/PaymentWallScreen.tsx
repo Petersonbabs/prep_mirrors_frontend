@@ -23,6 +23,9 @@ function PaywallScreen({
     captureEvent(`paywall_upgrade`, {
       plan: selected
     })
+    captureEvent(`onboarding_completed`, {
+      plan: selected
+    })
     setIsProcessing(true);
 
     try {
