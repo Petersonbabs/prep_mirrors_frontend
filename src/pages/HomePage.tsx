@@ -370,7 +370,7 @@ function VideoSection({ onOpenDemo }: { onOpenDemo: () => void; }) {
 export function HomePage({ onGetStarted }: HomePageProps) {
   const [statsVisible, setStatsVisible] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
-  const [showQuickInterview, setShowQuickInterview] = useState(true);
+  const [showQuickInterview, setShowQuickInterview] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
   const [prefillData, setPrefillData] = useState<{ name: string; jobTarget: string } | null>(null);
   const navigate = useNavigate()
