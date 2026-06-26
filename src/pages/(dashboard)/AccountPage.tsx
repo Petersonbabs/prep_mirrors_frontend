@@ -331,7 +331,7 @@ function BillingSection() {
             disabled={loadingUpgrade}
             className="flex-1 px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100 dark:shadow-none disabled:opacity-50"
           >
-            {loadingUpgrade ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : `Start ${subscription}}-Day Free Trial`}
+            {loadingUpgrade ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : `Start ${pricing?.pro?.trialDays}}-Day Free Trial`}
           </button>
         ) : (
           <>
