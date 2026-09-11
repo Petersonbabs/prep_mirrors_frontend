@@ -65,7 +65,7 @@ export default function InterviewSession({
   const [sessionTime, setSessionTime] = useState(0);
   const [processingAnswer, setProcessingAnswer] = useState(false);
   const [callEnded, setCallEnded] = useState(false);
-  const [variableValues, setvariableValues] = useState<TechnicalContext | BehavioralContext | null>(null)
+  const [variableValues] = useState<TechnicalContext | BehavioralContext | null>(null)
   const { user:userData} = useAuth();
 
   const transcriptRef = useRef<HTMLDivElement>(null);

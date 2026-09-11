@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
 import { UnderDevelopmentComponent } from '../../utils/utils'
-import { ArrowRightIcon, CheckIcon, PlayIcon, SparklesIcon, StarIcon, Video } from 'lucide-react'
+import { ArrowRightIcon, CheckIcon, SparklesIcon, StarIcon, Video } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 interface HeroProps {
@@ -24,8 +24,10 @@ const Hero = ({ setShowQuickInterview }: HeroProps) => {
                             <span>AI-Powered Interview Practice</span>
                         </div>
                         <h1 className="font-display font-bold text-5xl sm:text-6xl text-neutral-900 dark:text-white leading-tight mb-6">
-                            Ace Your Next <span className="gradient-text">Interview</span>{' '}
-                            with Confidence
+                            Get Clear <span className="gradient-text">Feedback</span> <br />
+                            Before Your Next <br />
+                            <span className="gradient-text">Interview</span>{' '}
+
                         </h1>
                         <p className="text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed mb-8 max-w-lg">
                             Practice with AI-powered mock interviews tailored to your target

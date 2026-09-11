@@ -2,12 +2,7 @@ import React, { useState } from 'react';
 import {
   BellIcon,
   MoonIcon,
-  ShieldIcon,
-  GlobeIcon,
-  VolumeIcon,
-  EyeIcon,
-  MailIcon,
-  SmartphoneIcon } from
+  ShieldIcon } from
 'lucide-react';
 interface SettingToggleProps {
   label: string;

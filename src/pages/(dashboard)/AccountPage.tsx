@@ -18,7 +18,6 @@ import { subscriptionApi } from '../../lib/api/subscription';
 import { subscription as pricing } from '../../data/pricing'
 import { ProfileAvatar } from '../../components/ui/ProfileAvatar';
 
-// Replace with your real Paystack public key from https://dashboard.paystack.com
 type ActiveSection = 'profile' | 'billing' | 'security' | 'notifications';
 interface SectionButtonProps {
   id: ActiveSection;
@@ -113,7 +112,7 @@ function ProfileSection() {
           name={formData.fullName}
           size="xl"
           editable
-          // onUpload={handleAvatarUpload}
+        // onUpload={handleAvatarUpload}
         />
         <div>
           <p className="font-medium text-neutral-900 dark:text-white">Profile Picture</p>

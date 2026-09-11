@@ -2,8 +2,7 @@
 import { useEffect, useState } from 'react';
 import {
     Users, Calendar, Target, Award, TrendingUp,
-    ArrowUp, ArrowDown, Loader2, Mail, MessageSquare,
-    CheckCircle, Clock, Star, Zap, Crown
+    Loader2, Mail, Crown
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -26,7 +25,6 @@ export function AdminDashboard() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [growthData, setGrowthData] = useState<GrowthData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [timeRange, setTimeRange] = useState<'week' | 'month' | 'all'>('week');
 
     useEffect(() => {
         fetchDashboard();

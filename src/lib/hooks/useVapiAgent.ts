@@ -130,7 +130,7 @@ export function useVapiAgent({
         }
     }, [callStatus, messages, onCallEnd]);
 
-    const startCall = async (variableValues?:TechnicalContext | BehavioralContext) => {
+    const startCall = async (overrideVariableValues?: TechnicalContext | BehavioralContext) => {
         setStartingCall(true);
         setCallStatus(CallStatus.CONNECTING);
         onStatusChange?.(CallStatus.CONNECTING);
@@ -138,6 +138,7 @@ export function useVapiAgent({
         await vapi.start(assistantId, {
             variableValues: {
                 ...variableValues,
+                ...overrideVariableValues,
                 questions: formattedQuestions,
                 userName,
                 jobTarget: jobTarget,

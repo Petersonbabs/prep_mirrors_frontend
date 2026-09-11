@@ -87,7 +87,7 @@ export function App() {
     }
   }, [user, userProfile]);
 
-  const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const [, setShowWalkthrough] = useState(false);
   // Apply theme to html element
   useEffect(() => {
     const html = document.documentElement;
@@ -198,7 +198,6 @@ export function App() {
 
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/paywall" element={<Paywall />} />
-              <Route path="/payment-success" element={<PaymentSuccess />} />
 
 
               <Route path="/admin" element={<AdminPage />} />

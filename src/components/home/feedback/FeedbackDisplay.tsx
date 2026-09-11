@@ -13,7 +13,6 @@ import {
     ChevronDownIcon,
     ChevronUpIcon,
     ThumbsUpIcon,
-    ThumbsDownIcon,
     BookOpenIcon,
     VideoIcon,
     ClipboardListIcon,
@@ -29,7 +28,7 @@ interface FeedbackDisplayProps {
     onNext?: () => void;
 }
 
-export default function FeedbackDisplay({ feedback, question, onImprove, onNext }: FeedbackDisplayProps) {
+export default function FeedbackDisplay({ feedback, question: _question, onImprove, onNext }: FeedbackDisplayProps) {
     const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
     const getScoreColor = (score: number) => {
@@ -38,39 +37,33 @@ export default function FeedbackDisplay({ feedback, question, onImprove, onNext 
         return 'text-red-600 bg-red-100';
     };
 
-    const getScoreIcon = (score: number) => {
-        if (score >= 4) return <ThumbsUpIcon className="w-4 h-4" />;
-        if (score >= 3) return <TrendingUpIcon className="w-4 h-4" />;
-        return <ThumbsDownIcon className="w-4 h-4" />;
-    };
-
     const breakdownSections = [
         {
             id: 'structure',
             title: 'Answer Structure',
             icon: ClipboardListIcon,
-            data: feedback.breakdown.structure as { score: number; feedback: string; example: string },
+            data: feedback.breakdown.structure as any,
             color: 'blue',
         },
         {
             id: 'technical',
             title: 'Technical Accuracy',
             icon: BrainIcon,
-            data: feedback.breakdown.technical_accuracy,
+            data: feedback.breakdown.technical_accuracy as any,
             color: 'purple',
         },
         {
             id: 'communication',
             title: 'Communication',
             icon: MicIcon,
-            data: feedback.breakdown.communication,
+            data: feedback.breakdown.communication as any,
             color: 'green',
         },
         {
             id: 'engagement',
             title: 'Engagement',
             icon: UsersIcon,
-            data: feedback.breakdown.engagement,
+            data: feedback.breakdown.engagement as any,
             color: 'orange',
         },
     ];
@@ -170,7 +163,7 @@ export default function FeedbackDisplay({ feedback, question, onImprove, onNext 
                                         <div>
                                             <p className="text-xs font-medium text-amber-600 mb-1">📌 Points to include</p>
                                             <ul className="list-disc list-inside text-sm text-neutral-600 dark:text-neutral-400">
-                                                {section.data.missing_points.map((point, i) => (
+                                                {section.data.missing_points.map((point: string, i: number) => (
                                                     <li key={i}>{point}</li>
                                                 ))}
                                             </ul>
@@ -182,7 +175,7 @@ export default function FeedbackDisplay({ feedback, question, onImprove, onNext 
                                         <div>
                                             <p className="text-xs font-medium text-amber-600 mb-1">🗣️ Watch out for filler words</p>
                                             <div className="flex flex-wrap gap-2">
-                                                {section.data.filler_words.map((word, i) => (
+                                                {section.data.filler_words.map((word: string, i: number) => (
                                                     <span key={i} className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs rounded-full">
                                                         {word}
                                                     </span>

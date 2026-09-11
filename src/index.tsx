@@ -31,7 +31,7 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then(_registration => {
       // Service Worker registered successfully
-    }).catch(error => {
+    }).catch(() => {
       // Service Worker registration failed
     });
   });

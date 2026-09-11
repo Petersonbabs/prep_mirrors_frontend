@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Bell, BellOff, X } from 'lucide-react';
+import { useState } from 'react';
+import { Bell, X } from 'lucide-react';
 import { usePushNotifications } from '../../lib/hooks/usePushNotifications';
 
 interface PushPermissionPromptProps {

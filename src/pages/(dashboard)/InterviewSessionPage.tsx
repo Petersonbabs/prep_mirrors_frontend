@@ -1,13 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   MicIcon,
-  MicOffIcon,
   ArrowRightIcon,
   ArrowLeftIcon,
-  VolumeIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ChevronRightIcon
+  CheckCircleIcon
 } from
   'lucide-react';
 import { InterviewData } from '../../App';

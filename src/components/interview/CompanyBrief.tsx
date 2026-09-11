@@ -1,5 +1,5 @@
 // frontend/src/components/interview/CompanyBrief.tsx
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Building2, MapPin, DollarSign, Briefcase, Users, Target, Clock, ChevronRight, Sparkles } from 'lucide-react';
 import { Company } from '../../lib/types';
 

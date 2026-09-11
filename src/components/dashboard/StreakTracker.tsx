@@ -1,6 +1,7 @@
 // frontend/src/components/dashboard/StreakTracker.tsx
-import { useEffect, useState } from 'react';
-import { Flame, Award, Gift, Calendar, AlertCircle } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Flame, Gift, Share2 } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { streakApi } from '../../lib/api/streak';
 import { useAuth } from '../../lib/hooks/useAuth';
 
@@ -18,6 +19,31 @@ export function StreakTracker() {
   const [streakData, setStreakData] = useState<StreakData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showFreezeModal, setShowFreezeModal] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleShare = async () => {
+    if (!shareRef.current || isSharing) return;
+    setIsSharing(true);
+    try {
+      // Small delay to allow state changes to apply (like the watermark)
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const canvas = await html2canvas(shareRef.current, {
+        backgroundColor: document.documentElement.classList.contains('dark') ? '#262626' : '#ffffff',
+        scale: 3,
+        logging: false,
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `prepmirrors-streak.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (error) {
+      console.error('Failed to share streak', error);
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -58,7 +84,7 @@ export function StreakTracker() {
   const weekDays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-700 shadow-card">
+    <div ref={shareRef} className="bg-white dark:bg-neutral-800 rounded-2xl p-5 border border-neutral-100 dark:border-neutral-700 shadow-card relative">
       {/* Streak Flame */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -70,9 +96,19 @@ export function StreakTracker() {
           </div>
           <span className="text-sm text-neutral-500">day streak</span>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-neutral-500">Best streak</p>
-          <p className="font-display font-bold text-lg text-primary-500">{longest_streak} days</p>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-xs text-neutral-500">Best streak</p>
+            <p className="font-display font-bold text-lg text-primary-500">{longest_streak} days</p>
+          </div>
+          <button
+            onClick={handleShare}
+            disabled={isSharing}
+            className="p-2 text-neutral-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-xl transition-colors disabled:opacity-50"
+            title="Share Streak"
+          >
+            <Share2 className="w-5 h-5" />
+          </button>
         </div>
       </div>
 
@@ -160,6 +196,13 @@ export function StreakTracker() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Watermark for sharing */}
+      {isSharing && (
+        <div className="absolute bottom-2 right-4 text-[10px] text-neutral-400 font-medium">
+          app.prepmirrors.com
         </div>
       )}
     </div>

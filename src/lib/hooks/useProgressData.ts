@@ -88,7 +88,6 @@ export function useProgressData(): UseProgressDataReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sessionsOffset, setSessionsOffset] = useState(0);
-  const [allSessions, setAllSessions] = useState<SessionHistory[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -105,7 +104,6 @@ export function useProgressData(): UseProgressDataReturn {
         setData(response.data);
         // Also store recent sessions
         if (response.data.recent_sessions) {
-          setAllSessions(response.data.recent_sessions);
           setSessionsOffset(response.data.recent_sessions.length);
           setHasMore(response.data.recent_sessions.length >= 5);
         }
@@ -129,7 +127,6 @@ export function useProgressData(): UseProgressDataReturn {
       const response = await progressApi.getSessions(10, sessionsOffset) as any
       
       if (response.success && response.data.length > 0) {
-        setAllSessions(prev => [...prev, ...response.data]);
         setSessionsOffset(prev => prev + response.data.length);
         setHasMore(response.data.length === 10);
         

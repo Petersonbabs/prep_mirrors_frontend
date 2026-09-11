@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { XIcon, CheckCircleIcon } from 'lucide-react';
 interface ExitIntentModalProps {
   isOpen: boolean;

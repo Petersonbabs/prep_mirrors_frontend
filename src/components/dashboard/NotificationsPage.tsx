@@ -1,7 +1,7 @@
 // frontend/src/pages/NotificationsPage.tsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BellIcon, ArrowLeftIcon, CheckCircleIcon, Loader2 } from 'lucide-react';
+import { BellIcon, ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { apiClient } from '../../lib/api/client';
 

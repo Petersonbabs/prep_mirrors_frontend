@@ -25,7 +25,6 @@ export function ContactForm() {
         handleSubmit,
         reset,
         setValue,
-        setValues,
         formState: { errors },
     } = useForm<ContactFormData>({
         resolver: zodResolver(contactSchema),
@@ -40,12 +39,10 @@ export function ContactForm() {
 
     useEffect(() => {
         if (user) {
-            setValues({
-                email: user?.email ?? "",
-                name: user?.user_metadata?.full_name || user?.email?.split('@')[0]
-            })
+            setValue('email', user?.email ?? "");
+            setValue('name', user?.user_metadata?.full_name || user?.email?.split('@')[0] || "");
         }
-    }, [user])
+    }, [user, setValue]);
 
     const onSubmit = async (data: ContactFormData) => {
         setIsSubmitting(true);

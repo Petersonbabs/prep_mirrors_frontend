@@ -1,5 +1,5 @@
 // frontend/src/components/dashboard/DashboardWalkthrough.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon, ChevronRightIcon, SparklesIcon } from 'lucide-react';
 

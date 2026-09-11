@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useRef } from 'react'
 import { formatTime } from '../../utils/utils';
 
 const Timer = ({ canCount, sessionTime, setSessionTime }: { canCount: boolean, sessionTime: number, setSessionTime: Dispatch<SetStateAction<number>> }) => {

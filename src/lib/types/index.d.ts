@@ -120,4 +120,5 @@ export interface Company {
   founded: number;
   interviewProcess: string[];
   preparationTips: string[];
+  is_completed?: boolean;
 }

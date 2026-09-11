@@ -1,8 +1,8 @@
 // frontend/src/components/admin/ActivationDashboard.tsx
 import { useEffect, useState } from 'react';
 import {
-    TrendingUp, TrendingDown, Users, Target,
-    Award, Calendar, Clock, BarChart3,
+    TrendingUp, Users, Target,
+    Award,
     ArrowUp, ArrowDown, Minus
 } from 'lucide-react';
 

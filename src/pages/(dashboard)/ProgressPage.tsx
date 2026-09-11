@@ -8,7 +8,7 @@ import {
   ChevronUpIcon,
   Loader2
 } from 'lucide-react';
-import { useProgressData, useSessionHistory } from '../../lib/hooks/useProgressData';
+import { useProgressData } from '../../lib/hooks/useProgressData';
 
 type DateRange = '7d' | '30d' | 'all';
 
@@ -39,8 +39,6 @@ function scoreBadge(s: number) {
 export function ProgressPage() {
   const navigate = useNavigate();
   const { data, loading, error, refresh } = useProgressData();
-  const { sessions, hasMore, loadMore, loading: loadingSessionHistory } = useSessionHistory()
-  console.log(sessions)
   const [dateRange, setDateRange] = useState<DateRange>('30d');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [trendData, setTrendData] = useState<any[]>([]);

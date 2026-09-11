@@ -1,4 +1,4 @@
-import React, { useState, Component } from 'react';
+import React, { useState } from 'react';
 import {
   LayoutDashboardIcon,
   UsersIcon,
@@ -6,15 +6,12 @@ import {
   VideoIcon,
   SettingsIcon,
   TrendingUpIcon,
-  TrendingDownIcon,
   SearchIcon,
   ChevronDownIcon,
-  ChevronRightIcon,
   XIcon,
   CheckCircleIcon,
   ClockIcon,
   BookOpenIcon,
-  FilterIcon,
   DownloadIcon,
   RefreshCwIcon,
   ShieldIcon,
@@ -26,11 +23,8 @@ import {
   MinusIcon,
   BarChart2Icon,
   DollarSignIcon,
-  MousePointerClickIcon,
-  GlobeIcon,
   ZapIcon,
   RepeatIcon,
-  CalendarIcon,
   PencilIcon,
   TrashIcon,
   PlusIcon,
@@ -1275,7 +1269,7 @@ function AnalyticsSection() {
           </div>
           <div className="space-y-3">
             {TRAFFIC_SOURCES.map(
-              ({ source, icon, users, pct, color, trend, positive }) =>
+              ({ source, icon, users: _users, pct, color, trend, positive }) =>
               <div key={source} className="flex items-center gap-3">
                   <span className="text-base w-5 flex-shrink-0">{icon}</span>
                   <span className="text-sm text-slate-600 dark:text-slate-400 w-28 flex-shrink-0">
@@ -1378,7 +1372,7 @@ function AnalyticsSection() {
             </p>
           </div>
           <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-            {ONBOARDING_STEPS.map(({ step, completed, dropOff, pct }, i) => {
+            {ONBOARDING_STEPS.map(({ step, completed: _completed, dropOff, pct }, i) => {
               const isWorst =
               dropOff === Math.max(...ONBOARDING_STEPS.map((s) => s.dropOff));
               return (

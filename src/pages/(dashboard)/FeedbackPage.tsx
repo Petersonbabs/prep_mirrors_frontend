@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, { useState } from 'react';
 import {
   StarIcon,
   CheckIcon,
@@ -7,7 +7,6 @@ import {
   MessageSquareIcon,
   HomeIcon,
   ThumbsUpIcon,
-  AlertCircleIcon,
   LightbulbIcon,
   LayoutListIcon,
   MicIcon,
@@ -248,10 +247,7 @@ function ScoreBar({ score, barColor }: {score: number;barColor: string;}) {
 // ─── Detail Panel ─────────────────────────────────────────────────────────────
 function DetailPanel({
   area,
-  userAnswer
-
-
-
+  userAnswer: _userAnswer
 }: {area: FeedbackArea;userAnswer: string;}) {
   return (
     <div className="flex flex-col gap-5 animate-fade-in" key={area.id}>

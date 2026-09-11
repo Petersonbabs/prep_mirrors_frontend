@@ -1,5 +1,5 @@
 // frontend/src/pages/DashboardPage.tsx (updated)
-import { useState, useEffect, lazy } from 'react';
+import { useState, useEffect } from 'react';
 import { ZapIcon } from 'lucide-react';
 import { useDashboardData } from '../../lib/hooks/useDashboardData';
 import { useAuth } from '../../lib/hooks/useAuth';
@@ -11,8 +11,6 @@ import { OutcomeTracker } from '../../components/dashboard/OutcomeTracker';
 import { RecentActivity } from '../../components/dashboard/RecentActivity';
 import { Achievements } from '../../components/dashboard/Achievements';
 import { TipOfTheDay } from '../../components/dashboard/TipOfTheDay';
-import { DashboardWalkthrough } from '../../components/DashboardWalkthrough';
-import { dashboardApi } from '../../lib/api/dashboard';
 import { companiesApi } from '../../lib/api/companies';
 import { Company } from '../../lib/types';
 import { RefreshCompaniesButton } from '../../components/dashboard/RefreshCompaniesButton';
@@ -46,15 +44,12 @@ const DashboardSkeleton = () => (
   </div>
 );
 
-export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
+export function DashboardPage({ onWalkthroughComplete: _onWalkthroughComplete }: DashboardPageProps) {
   const { subscription, loading, stats, firstName } = useDashboardData();
   const { user, profile, refreshProfile } = useAuth();
   const [filter, setFilter] = useState<'all' | 'Easy' | 'Medium' | 'Hard'>('all');
-  const [showWalkthrough, setShowWalkthrough] = useState(false);
-  const [checkingWalkthrough, setCheckingWalkthrough] = useState(true);
   const [showRequiredInfoModal, setShowRequiredInfoModal] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [hasRequiredInfo, setHasRequiredInfo] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const { isSubscribed, permission } = usePushNotifications();
@@ -79,7 +74,6 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
     const checkRequiredInfo = async () => {
       if (user?.id && !loadingCompanies) {
         const response = await companiesApi.getUserCompanies(user.id);
-        setHasRequiredInfo(response.hasRequiredInfo !== false);
 
         // If no companies AND has required info, generate
         if (response.companies.length === 0 && response.hasRequiredInfo) {
@@ -152,34 +146,13 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
 
   const filteredInterviews = companies.filter(company => filter === 'all' || company.difficulty === filter);
 
-  // Check if user has seen walkthrough
-  useEffect(() => {
-    const checkWalkthrough = async () => {
-      if (profile && !loading) {
-        if (profile.has_seen_walkthrough === false) {
-          setShowWalkthrough(true);
-        }
-        setCheckingWalkthrough(false);
-      } else if (!loading && !profile) {
-        setCheckingWalkthrough(false);
-      }
-    };
+  const sortedInterviews = [...filteredInterviews].sort((a, b) => {
+    if (a.is_completed && !b.is_completed) return 1;
+    if (!a.is_completed && b.is_completed) return -1;
+    return 0;
+  });
 
-    checkWalkthrough();
-  }, [profile, loading]);
-
-  const handleWalkthroughComplete = async () => {
-    setShowWalkthrough(false);
-
-    if (user?.id) {
-      await dashboardApi.markWalkthroughComplete(user.id);
-      await refreshProfile();
-    }
-
-    onWalkthroughComplete?.();
-  };
-
-  if (loading || checkingWalkthrough || loadingCompanies) return <DashboardSkeleton />;
+  if (loading || loadingCompanies) return <DashboardSkeleton />;
 
   return (
     <>
@@ -249,7 +222,7 @@ export function DashboardPage({ onWalkthroughComplete }: DashboardPageProps) {
               </div>
 
               <div className="space-y-3">
-                {filteredInterviews.map((interview, i) => (
+                {sortedInterviews.map((interview, i) => (
                   <InterviewCard key={interview.id} interview={interview} index={i} />
                 ))}
               </div>

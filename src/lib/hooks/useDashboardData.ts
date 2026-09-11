@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { Subscription, subscriptionApi } from '../api/subscription';
 import { progressApi } from '../api/progress';
-import type { UserStats } from './useProgressData';
 
 export function useDashboardData() {
     const { user, profile } = useAuth();

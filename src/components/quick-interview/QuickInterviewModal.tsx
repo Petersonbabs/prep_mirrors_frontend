@@ -43,15 +43,6 @@ const pulseVariants = {
   }
 };
 
-const scoreCardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, type: 'spring', stiffness: 200 }
-  })
-};
-
 export default function QuickInterviewModal({ isOpen, onClose, onContinue }: QuickInterviewModalProps) {
   const [step, setStep] = useState<Step>('collect');
   const [name, setName] = useState('');
@@ -60,7 +51,6 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
   const [question, setQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [avgScore, setAvgScore] = useState(0);
 
   const [isCallActive, setIsCallActive] = useState(false);
   const [callStatus, setCallStatus] = useState('');
@@ -91,7 +81,6 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
     setTempUserId(null);
     setQuestion('');
     setFeedback(null);
-    setAvgScore(0);
     setIsCallActive(false);
     setCallStatus('');
     setUserTranscript('');
@@ -199,7 +188,6 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
       if (response.success) {
         toast.success("Your feedback is ready!")
         setFeedback(response.feedback);
-        setAvgScore(response.avgScore);
         setStep('feedback');
       } else {
         throw new Error('Failed to process answer');
@@ -240,29 +228,6 @@ export default function QuickInterviewModal({ isOpen, onClose, onContinue }: Qui
       setIsLoading(false);
     }
   };
-
-  // Score card component with animation
-  const ScoreCard = ({ label, value, icon, index }: { label: string; value: number; icon: React.ReactNode; index: number }) => (
-    <motion.div
-      custom={index}
-      variants={scoreCardVariants}
-      initial="hidden"
-      animate="visible"
-      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
-      className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-4 text-center"
-    >
-      <div className="flex justify-center mb-2">{icon}</div>
-      <motion.div
-        className="text-2xl font-bold text-primary-500"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', delay: index * 0.1 + 0.3 }}
-      >
-        {value}/5
-      </motion.div>
-      <div className="text-xs text-neutral-500 mt-1">{label}</div>
-    </motion.div>
-  );
 
   return (
     <AnimatePresence mode="wait">

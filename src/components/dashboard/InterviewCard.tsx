@@ -1,6 +1,6 @@
 // frontend/src/components/dashboard/InterviewCard.tsx
 import { useState } from 'react';
-import { PlayIcon, DollarSignIcon, MapPinIcon, BriefcaseIcon, Wallet, Building2, Info, X } from 'lucide-react';
+import { PlayIcon, MapPinIcon, BriefcaseIcon, Wallet, Building2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -109,7 +109,7 @@ export function InterviewCard({ interview, index }: { interview: any; index: num
                                 className="flex w-full sm:w-fit items-center justify-center gap-1.5 px-4 py-4 md:py-2 bg-primary-500 hover:bg-primary-600 text-white text-sm sm:text-xs font-semibold rounded-xl transition-colors"
                             >
                                 <PlayIcon className="w-3.5 h-3.5" />
-                                <span>Start</span>
+                                <span>{interview.is_completed ? 'Retake' : 'Start'}</span>
                             </button>
                         </div>
                     </div>
@@ -186,7 +186,7 @@ export function InterviewCard({ interview, index }: { interview: any; index: num
                                     className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
                                 >
                                     <PlayIcon className="w-4 h-4" />
-                                    Start Interview
+                                    {interview.is_completed ? 'Retake Interview' : 'Start Interview'}
                                 </button>
                             </div>
                         </div>

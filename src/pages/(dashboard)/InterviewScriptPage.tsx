@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ArrowLeftIcon,
   ArrowRightIcon,
   MapPinIcon,
   DollarSignIcon,
   BriefcaseIcon,
-  BuildingIcon,
   ClockIcon,
-  UsersIcon,
   ChevronRightIcon
 } from
   'lucide-react';

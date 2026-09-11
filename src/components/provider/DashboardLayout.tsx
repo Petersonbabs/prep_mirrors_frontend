@@ -16,7 +16,6 @@ import { InterviewFlow } from "../../pages/(dashboard)/InterviewFlow"
 import { NotificationsPage } from "../dashboard/NotificationsPage"
 
 const DashboardLayout = () => {
-    const [showWalkthrough, setShowWalkthrough] = useState(false);
     const { user, isLoading } = useAuth();
     const [selectedInterview, setSelectedInterview] =
         useState<InterviewData | null>(null);
@@ -27,10 +26,7 @@ const DashboardLayout = () => {
         question: string;
         answer: string;
     } | null>(null);
-    const navigate = useNavigate()
-    const handleWalkthroughComplete = () => {
-        setShowWalkthrough(false);
-    };
+    const navigate = useNavigate();
     const handleStartInterview = (interview: InterviewData) => {
         setSelectedInterview(interview);
         setCurrentPhase('technical');
@@ -66,7 +62,7 @@ const DashboardLayout = () => {
                         (!isLoading && !user) ? <Navigate to="/signin" replace /> :
                             <DashboardPage
                                 onStartInterview={handleStartInterview}
-                                onWalkthroughComplete={handleWalkthroughComplete} />
+                                onWalkthroughComplete={() => {}} />
                     } />
 
                 <Route

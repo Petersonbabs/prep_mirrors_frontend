@@ -1,6 +1,7 @@
 // frontend/src/pages/InterviewFlow.tsx (updated)
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { interviewApi } from '../../lib/api/interview';
+import { streakApi } from '../../lib/api/streak';
 import { useAuth } from '../../lib/hooks/useAuth';
 import { Company, UserProfile } from '../../lib/types';
 import { Loader2 } from 'lucide-react';
@@ -24,14 +25,18 @@ type FlowStep =
 
 export function InterviewFlow() {
     const [company, setCompany] = useState<Company | null>(null);
-    const { user, profile: userProfile } = useAuth();
+    const { profile: userProfile } = useAuth();
     const [step, setStep] = useState<FlowStep>('brief');
     const [technicalSessionId, setTechnicalSessionId] = useState<string | null>(null);
     const [behavioralSessionId, setBehavioralSessionId] = useState<string | null>(null);
     const [technicalQuestions, setTechnicalQuestions] = useState<string[]>([]);
     const [behavioralQuestions, setBehavioralQuestions] = useState<string[]>([]);
     const [technicalFeedback, setTechnicalFeedback] = useState<any>(null);
+    const [technicalAnswers, setTechnicalAnswers] = useState<string[]>([]);
+    const [technicalTranscript, setTechnicalTranscript] = useState<any[]>([]);
     const [behavioralFeedback, setBehavioralFeedback] = useState<any>(null);
+    const [behavioralAnswers, setBehavioralAnswers] = useState<string[]>([]);
+    const [behavioralTranscript, setBehavioralTranscript] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const { companyId } = useParams();
     const navigate = useNavigate();
@@ -54,8 +59,24 @@ export function InterviewFlow() {
                 }
 
                 // Restore session state if exists
-                if (sessionData?.session?.phase) {
-                    setStep(sessionData.session.phase);
+                if (sessionData?.session) {
+                    const session = sessionData.session;
+                    if (session.phase && session.phase !== 'complete') {
+                        setStep(session.phase);
+                        if (session.phase.startsWith('technical')) {
+                            setTechnicalSessionId(session.id);
+                            setTechnicalFeedback(session.feedback);
+                            setTechnicalAnswers(session.answers || []);
+                            setTechnicalTranscript(session.transcript || []);
+                        } else if (session.phase.startsWith('behavioral')) {
+                            setBehavioralSessionId(session.id);
+                            setBehavioralFeedback(session.feedback);
+                            setBehavioralAnswers(session.answers || []);
+                            setBehavioralTranscript(session.transcript || []);
+                        }
+                    } else {
+                        setStep('brief');
+                    }
                 }
 
                 // Fetch questions based on current phase
@@ -104,6 +125,8 @@ export function InterviewFlow() {
         feedback?: any; 
     }) => {
         setTechnicalSessionId(data.sessionId);
+        setTechnicalAnswers(data.answers);
+        setTechnicalTranscript(data.transcript);
         setTechnicalFeedback(data.feedback || null);  // ✅ Store feedback
         await updateSessionPhase('technical_feedback');
     };
@@ -115,6 +138,8 @@ export function InterviewFlow() {
         feedback?: any;  // ✅ Add feedback parameter
     }) => {
         setBehavioralSessionId(data.sessionId);
+        setBehavioralAnswers(data.answers);
+        setBehavioralTranscript(data.transcript);
         setBehavioralFeedback(data.feedback || null);  // ✅ Store feedback
         await updateSessionPhase('behavioral_feedback');
     };
@@ -124,6 +149,11 @@ export function InterviewFlow() {
     };
 
     const handleBehavioralCoachComplete = async () => {
+        try {
+            await streakApi.updateStreak();
+        } catch (error) {
+            console.error('Failed to update streak:', error);
+        }
         await updateSessionPhase('complete');
         onComplete();
     };
@@ -199,6 +229,9 @@ export function InterviewFlow() {
                         interviewPhase="technical"
                         companyName={company?.name as string}
                         feedback={technicalFeedback}
+                        questions={technicalQuestions}
+                        answers={technicalAnswers}
+                        transcript={technicalTranscript}
                         onComplete={handleTechnicalCoachComplete}
                         onBack={() => updateSessionPhase('technical_feedback')}
                     />
@@ -242,6 +275,9 @@ export function InterviewFlow() {
                         interviewPhase="behavioral"
                         companyName={company?.name as string}
                         feedback={behavioralFeedback}
+                        questions={behavioralQuestions}
+                        answers={behavioralAnswers}
+                        transcript={behavioralTranscript}
                         onComplete={handleBehavioralCoachComplete}
                         onBack={() => updateSessionPhase('behavioral_feedback')}
                     />

@@ -1,7 +1,7 @@
 // frontend/src/components/interview/InterviewFeedback.tsx
 
 import { useState } from 'react';
-import { Star, TrendingUp, Target, Brain, Mic, Users, CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
+import { Star, Target, CheckCircle, ArrowRight, ChevronRight } from 'lucide-react';
 
 // ✅ Define the category scores type
 type CategoryScores = {
