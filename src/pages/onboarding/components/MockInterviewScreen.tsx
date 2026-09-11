@@ -36,7 +36,7 @@ function MockInterviewScreen({
 }: MockInterviewScreenProps) {
   const [phase, setPhase] = useState<'loading' | 'pre-rating' | 'interview' | 'feedback'>('loading');
   const [preConfidence, setPreConfidence] = useState<number | null>(null);
-  const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [userAnswers] = useState<string[]>([]);
   const [callActive, setCallActive] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
@@ -152,11 +152,9 @@ function MockInterviewScreen({
   const {
     callStatus,
     isSpeaking: agentIsSpeaking,
-    messages: vapiMessages,
     isUserSpeaking: agentIsUserSpeaking,
     startCall,
-    startingCall,
-    endCall
+    startingCall
   } = useVapiAgent({
     assistantId: import.meta.env.VITE_VAPI_ONBOARDING_INTERVIEW_ASSISTANT_ID,
     questions: questions,

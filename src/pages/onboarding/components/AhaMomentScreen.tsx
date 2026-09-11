@@ -38,8 +38,6 @@ function AhaMomentScreen({
     }
   }, [stepIndex, steps]);
 
-  // When first 3 steps are done, show generating step as active
-  const isGenerating = stepIndex === steps.length - 2;
   const isReady = questionsGenerated && !generatingQuestions;
 
   // Auto-advance to last step when questions are generated

@@ -7,7 +7,7 @@ import { useAuth } from "../../../lib/hooks/useAuth";
 import { captureEvent } from "../../../lib/posthog";
 
 function PaywallScreen({
-  onUpgrade,
+  onUpgrade: _onUpgrade,
   onSkip
 }: { onUpgrade: () => void; onSkip: () => void; }) {
   const [selected, setSelected] = useState<PlanId>('annual');

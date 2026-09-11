@@ -110,12 +110,6 @@ export default function OnboardingFeedbackScreen({
     return 'text-red-600';
   };
 
-  const getScoreBg = (score: number) => {
-    if (score >= 4) return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800';
-    if (score >= 3) return 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800';
-    return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
-  };
-
   const overallPercent = feedbackData ? Math.round((feedbackData.overall_score / 5) * 100) : 0;
   const overallScore = feedbackData?.overall_score ?? 0;
 
