@@ -1,4 +1,3 @@
-const formerPrice = 10
 const proMonthly = 7.99
 const proAnnually = 4.99
 const proFormerAnnually = proMonthly

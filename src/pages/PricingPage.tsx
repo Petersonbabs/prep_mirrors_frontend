@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, createElement } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckIcon,
@@ -10,12 +10,11 @@ import {
 import { ExitIntentModal } from '../components/ExitIntentModal';
 import { subscription } from '../data/pricing';
 import { UnderDevelopmentComponent } from '../utils/utils';
-// Replace with your real public key from your payment dashboard
-const PAYMENT_PUBLIC_KEY = 'FLWPUBK_TEST-xxxxxxxxxxxxxxxxxxxx-X';
+import { useLemonSqueezy } from '../contexts/LemonSqueezyContext';
+import { useAuth } from '../lib/hooks/useAuth';
+
 const FREE_FEATURES = subscription.free.features;
 const PRO_FEATURES = subscription.pro.features;
-
-
 
 const COMPARISON_ROWS = [
   {
@@ -84,7 +83,7 @@ const FAQS = [
   // },
   {
     q: 'What payment methods do you accept?',
-    a: 'We accept all major credit and debit cards, bank transfers, and mobile money. Your payment info is always secure and encrypted.'
+    a: 'We accept all major credit and debit cards via secure LemonSqueezy checkout. Your payment info is always secure and encrypted.'
   },
   // {
   //   q: 'Can I switch between annual and monthly?',
@@ -94,6 +93,8 @@ const FAQS = [
 
 export function PricingPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { checkout, isLoading: isCheckoutLoading } = useLemonSqueezy();
   const [isAnnual, setIsAnnual] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [payLoading, setPayLoading] = useState(false);
@@ -113,44 +114,24 @@ export function PricingPage() {
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
-  const proMonthlyUSD = 19.99;
-  const proAnnualUSD = 9.99; // per month, billed annually
-  const proPrice = isAnnual ? `$${proAnnualUSD}` : `$${proMonthlyUSD}`;
-  const proAmount = isAnnual ? proAnnualUSD * 12 : proMonthlyUSD;
-  const handleCheckout = () => {
+
+  const handleCheckout = async () => {
+    if (!user?.email || !user?.id) {
+      navigate('/auth');
+      return;
+    }
     setPayLoading(true);
-    const txRef = `pm_${new Date().getTime()}`;
-    const script = document.createElement('script');
-    script.src = 'https://checkout.flutterwave.com/v3.js';
-    script.onload = () => {
-      // @ts-ignore
-      window.FlutterwaveCheckout({
-        public_key: PAYMENT_PUBLIC_KEY,
-        tx_ref: txRef,
-        amount: proAmount,
-        currency: 'USD',
-        payment_options: 'card,banktransfer,ussd,mobilemoney',
-        customer: {
-          email: 'user@example.com' // Replace with actual user email
-        },
-        customizations: {
-          title: 'PrepMirrors Pro',
-          description: isAnnual ? 'Pro Plan — Annual' : 'Pro Plan — Monthly',
-          logo: "/[favicon]-Prep-mirror-white-bg.png"
-        },
-        callback: (response: { transaction_id: string; status: string; }) => {
-          setPayLoading(false);
-          if (response.status === 'successful') {
-            navigate('/dashboard');
-          }
-        },
-        onclose: () => {
-          setPayLoading(false);
-        }
-      });
-    };
-    script.onerror = () => setPayLoading(false);
-    document.body.appendChild(script);
+    try {
+      const variantId = isAnnual
+        ? (import.meta.env.VITE_LEMONSQUEEZY_ANNUAL_VARIANT_ID || subscription.pro.priceIds.annual)
+        : (import.meta.env.VITE_LEMONSQUEEZY_MONTHLY_VARIANT_ID || subscription.pro.priceIds.monthly);
+
+      await checkout(variantId, user.email, user.id);
+    } catch (error) {
+      console.error('Checkout error:', error);
+    } finally {
+      setPayLoading(false);
+    }
   };
   const handleExitFeedbackSubmit = (reason: string, otherText?: string) => {
     console.log('Exit intent feedback:', {
@@ -277,10 +258,10 @@ export function PricingPage() {
             </ul>
             <button
               onClick={handleCheckout}
-              disabled={payLoading}
+              disabled={payLoading || isCheckoutLoading}
               className="w-full py-3.5 bg-primary-500 hover:bg-primary-600 disabled:opacity-60 text-white font-bold rounded-2xl transition-colors shadow-soft mb-2">
 
-              {payLoading ? 'Loading...' : 'Start 7-Day Free Trial →'}
+              {payLoading || isCheckoutLoading ? 'Opening Checkout...' : 'Start 7-Day Free Trial →'}
             </button>
             <UnderDevelopmentComponent>
               <p className="text-center text-xs text-neutral-400 mb-1">
@@ -289,7 +270,7 @@ export function PricingPage() {
             </UnderDevelopmentComponent>
             <div className="flex items-center justify-center gap-1.5 text-xs text-neutral-400">
               <ShieldCheckIcon className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Secure checkout · Cards, Bank Transfer & USSD</span>
+              <span>Secure checkout · Credit & Debit Cards</span>
             </div>
           </div>
         </div>
@@ -405,7 +386,7 @@ export function PricingPage() {
             },
             {
               iconSrc: 'https://cdn.lordicon.com/hbkftmgg.json',
-              text: 'Cards, Bank Transfer & USSD'
+              text: 'Credit & Debit Cards'
             },
             {
               iconSrc: 'https://cdn.lordicon.com/rmgwdhlk.json',

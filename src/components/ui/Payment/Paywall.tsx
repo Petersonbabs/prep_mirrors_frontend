@@ -1,98 +1,29 @@
 // src/components/Paywall.tsx
-import React, { useState, useEffect } from 'react';
-import { usePaddle } from '../../../contexts/PaddleContext';
+import React, { useState } from 'react';
+import { useLemonSqueezy } from '../../../contexts/LemonSqueezyContext';
 import { plans, subscription } from '../../../data/pricing';
 import { useAuth } from '../../../lib/hooks/useAuth';
 
-
-interface PricePreview {
-    monthly: string | null;
-    annual: string | null;
-}
-
 const Paywall: React.FC = () => {
-    // ✅ FIXED: Get user from auth context instead of prop
-    const { user } = useAuth(); // Assuming you have an auth context
-    const { paddle, billingCycle, setBillingCycle, openCheckout, isLoading, startFreeTrial } = usePaddle();
-    const [prices, setPrices] = useState<PricePreview>({
-        monthly: null,
-        annual: null,
-    });
-    const [loadingPrices, setLoadingPrices] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
-
-    // Price IDs from environment
-    const PRICE_IDS = {
-        monthly: import.meta.env.VITE_PADDLE_MONTHLY_PRICE_ID,
-        annual: import.meta.env.VITE_PADDLE_ANNUALLY_PRICE_ID,
-    };
-
-    // Fetch localized prices
-    useEffect(() => {
-        const fetchPrices = async () => {
-            if (!paddle) return;
-
-            setLoadingPrices(true);
-
-            try {
-                // Fetch both prices in parallel for better performance
-                const [monthlyPreview, annualPreview] = await Promise.all([
-                    paddle.PricePreview({
-                        items: [{ priceId: PRICE_IDS.monthly, quantity: 1 }],
-                    }),
-                    paddle.PricePreview({
-                        items: [{ priceId: PRICE_IDS.annual, quantity: 1 }],
-                    })
-                ]);
-
-                setPrices({
-                    monthly: monthlyPreview?.data?.details?.lineItems?.[0]?.formattedTotals?.total || null,
-                    annual: annualPreview?.data?.details?.lineItems?.[0]?.formattedTotals?.total || null,
-                });
-            } catch (error) {
-                console.error('Error fetching prices:', error);
-            } finally {
-                setLoadingPrices(false);
-            }
-        };
-
-        fetchPrices();
-    }, [paddle]);
+    const { user } = useAuth();
+    const { checkout, isLoading } = useLemonSqueezy();
+    const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
 
     const handleSubscribe = async () => {
-        if (!user?.email) {
-            console.error('No user email found');
+        if (!user?.email || !user?.id) {
+            console.error('User auth required for subscription');
             return;
         }
 
-        setIsProcessing(true);
+        const variantId = billingCycle === 'month'
+            ? import.meta.env.VITE_LEMONSQUEEZY_MONTHLY_VARIANT_ID
+            : import.meta.env.VITE_LEMONSQUEEZY_ANNUAL_VARIANT_ID;
 
-        try {
-            // ✅ FIXED: Use the trial approach you prefer
-            // Option 1: Self-managed trial (no card required)
-            // const success = await startFreeTrial(user.id);
-            // if (success) {
-            //     window.location.href = '/dashboard';
-            // }
-
-            // Option 2: Paddle-managed trial (card required)
-            openCheckout({
-                customer: { email: user.email },
-            });
-
-            // Note: on success, user will be redirected to /payment-success
-            // The webhook will update their profile
-        } catch (error) {
-            console.error('Error during subscription:', error);
-        } finally {
-            setIsProcessing(false);
-        }
+        await checkout(variantId, user.email, user.id);
     };
 
     const currentPlan = plans.find(p => p.id === (billingCycle === 'month' ? 'monthly' : 'annual'));
-
-    // ✅ FIXED: Disable button if no user email
-    const isDisabled = loadingPrices || isLoading || isProcessing || !user?.email;
+    const isDisabled = isLoading || !user?.email;
 
     return (
         <div className="paywall-container">
@@ -101,14 +32,14 @@ const Paywall: React.FC = () => {
                 <button
                     className={billingCycle === 'month' ? 'active' : ''}
                     onClick={() => setBillingCycle('month')}
-                    disabled={isProcessing}
+                    disabled={isLoading}
                 >
                     Monthly
                 </button>
                 <button
                     className={billingCycle === 'year' ? 'active' : ''}
                     onClick={() => setBillingCycle('year')}
-                    disabled={isProcessing}
+                    disabled={isLoading}
                 >
                     Annual <span className="save-badge">Save {subscription.pro.percentageOff}%</span>
                 </button>
@@ -119,18 +50,12 @@ const Paywall: React.FC = () => {
                 <h3>Pro Plan</h3>
 
                 <div className="price">
-                    {loadingPrices ? (
-                        <span className="loading">Loading...</span>
-                    ) : (
-                        <>
-                            <span className="amount">
-                                {billingCycle === 'month'
-                                    ? prices.monthly || `$${subscription.pro.price.monthly}`
-                                    : prices.annual || `$${subscription.pro.price.annually}`}
-                            </span>
-                            <span className="period">/month</span>
-                        </>
-                    )}
+                    <span className="amount">
+                        {billingCycle === 'month'
+                            ? `$${subscription.pro.price.monthly}`
+                            : `$${subscription.pro.price.annually}`}
+                    </span>
+                    <span className="period">/month</span>
                 </div>
 
                 {billingCycle === 'year' && currentPlan && 'note' in currentPlan && (
@@ -148,13 +73,13 @@ const Paywall: React.FC = () => {
                     disabled={isDisabled}
                     className="cta-button"
                 >
-                    {isProcessing ? (
+                    {isLoading ? (
                         <span className="flex items-center justify-center gap-2">
                             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                             Processing...
                         </span>
                     ) : (
-                        `Start Free Trial — ${subscription.pro.trialDays} Days`
+                        `Start Pro Subscription — ${subscription.pro.trialDays} Days Free`
                     )}
                 </button>
 
@@ -172,4 +97,4 @@ const Paywall: React.FC = () => {
     );
 };
 
-export default Paywall;
+export default Paywall;
