@@ -5,6 +5,9 @@ export const coachApi = {
         interviewPhase: string;
         companyName?: string;
         feedback?: any;
+        questions?: string[];
+        answers?: string[];
+        transcript?: any[];
     }) => {
         return apiClient.post('/api/coach/session/start', data);
     },

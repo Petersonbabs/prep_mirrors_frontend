@@ -1,14 +1,8 @@
 // frontend/src/components/coach/CoachMira.tsx
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Send, Sparkles, MessageSquare, Bot } from 'lucide-react';
 import { coachApi } from '../../lib/api/coach';
-
-interface Message {
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: string;
-}
+import { supabase } from '../../lib/supabase';
 
 interface FeedbackData {
     overall_score: number;
@@ -29,21 +23,44 @@ interface CoachMiraProps {
     interviewPhase: 'technical' | 'behavioral';
     companyName?: string;
     feedback?: FeedbackData;
+    questions?: string[];
+    answers?: string[];
+    transcript?: any[];
     onComplete: () => void;
     onBack?: () => void;
 }
 
-export default function CoachMira({ interviewPhase, companyName, feedback, onComplete, onBack }: CoachMiraProps) {
+export interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+}
+
+const SUGGESTIONS = [
+    "How can I improve my communication?",
+    "Can we practice the STAR method?",
+    "What was my biggest mistake?",
+    "Give me a practice question."
+];
+
+export default function CoachMira({ interviewPhase, companyName, feedback, questions, answers, transcript, onComplete, onBack }: CoachMiraProps) {
     const [sessionId, setSessionId] = useState<string | null>(null);
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [isStarting, setIsStarting] = useState(false);
+    const [sessionStarted, setSessionStarted] = useState(false);
+    const [token, setToken] = useState<string | null>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const [isTyping, setIsTyping] = useState(false);
-    const [sessionStarted, setSessionStarted] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (sessionStarted && !sessionId) {
+        supabase.auth.getSession().then(({ data }) => {
+            setToken(data.session?.access_token || null);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (sessionStarted && !sessionId && !isStarting) {
             startCoachSession();
         }
     }, [sessionStarted]);
@@ -57,12 +74,15 @@ export default function CoachMira({ interviewPhase, companyName, feedback, onCom
     };
 
     const startCoachSession = async () => {
-        setIsLoading(true);
+        setIsStarting(true);
         try {
             const response = await coachApi.startSession({
                 interviewPhase,
                 companyName,
                 feedback,
+                questions,
+                answers,
+                transcript,
             });
 
             setSessionId(response.sessionId);
@@ -70,49 +90,80 @@ export default function CoachMira({ interviewPhase, companyName, feedback, onCom
                 id: Date.now().toString(),
                 role: 'assistant',
                 content: response.message,
-                timestamp: new Date().toISOString(),
             }]);
         } catch (error) {
             console.error('Error starting coach session:', error);
+        } finally {
+            setIsStarting(false);
+        }
+    };
+
+    const sendMessage = async (text: string) => {
+        if (!text.trim() || !sessionId || isLoading) return;
+
+        const userMsg: ChatMessage = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: text.trim(),
+        };
+
+        const newMessages = [...messages, userMsg];
+        setMessages(newMessages);
+        setInput('');
+        setIsLoading(true);
+
+        const assistantId = (Date.now() + 1).toString();
+        const initialAssistantMsg: ChatMessage = {
+            id: assistantId,
+            role: 'assistant',
+            content: '',
+        };
+        setMessages([...newMessages, initialAssistantMsg]);
+
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/coach/session/${sessionId}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify({ messages: newMessages }),
+            });
+
+            if (!res.ok || !res.body) {
+                throw new Error('Failed to send message');
+            }
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let assistantText = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                assistantText += chunk;
+
+                setMessages(prev =>
+                    prev.map(m => (m.id === assistantId ? { ...m, content: assistantText } : m))
+                );
+            }
+        } catch (err) {
+            console.error('Error sending message:', err);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const sendMessage = async () => {
-        if (!input.trim() || !sessionId) return;
-
-        const userMessage: Message = {
-            id: Date.now().toString(),
-            role: 'user',
-            content: input,
-            timestamp: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, userMessage]);
-        setInput('');
-        setIsTyping(true);
-
-        try {
-            const response = await coachApi.sendMessage(sessionId, input);
-            const assistantMessage: Message = {
-                id: (Date.now() + 1).toString(),
-                role: 'assistant',
-                content: response.message,
-                timestamp: new Date().toISOString(),
-            };
-            setMessages(prev => [...prev, assistantMessage]);
-        } catch (error) {
-            console.error('Error sending message:', error);
-        } finally {
-            setIsTyping(false);
+    const handleSuggestionClick = (suggestion: string) => {
+        if (!isLoading) {
+            sendMessage(suggestion);
         }
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        sendMessage(input);
     };
 
     const handleStart = () => {
@@ -225,8 +276,8 @@ export default function CoachMira({ interviewPhase, companyName, feedback, onCom
                     >
                         <div className={`flex gap-3 max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
                             <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${message.role === 'user'
-                                    ? 'bg-secondary-500'
-                                    : 'bg-gradient-to-br from-primary-500 to-secondary-500'
+                                ? 'bg-secondary-500'
+                                : 'bg-gradient-to-br from-primary-500 to-secondary-500'
                                 }`}>
                                 {message.role === 'user' ? (
                                     <span className="text-white text-sm font-medium">You</span>
@@ -235,19 +286,16 @@ export default function CoachMira({ interviewPhase, companyName, feedback, onCom
                                 )}
                             </div>
                             <div className={`p-3 rounded-2xl ${message.role === 'user'
-                                    ? 'bg-primary-500 text-white'
-                                    : 'bg-neutral-800 text-neutral-200'
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-neutral-800 text-neutral-200'
                                 }`}>
                                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                                <p className="text-xs opacity-60 mt-1">
-                                    {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </p>
                             </div>
                         </div>
                     </div>
                 ))}
 
-                {isTyping && (
+                {(isLoading || isStarting) && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
                     <div className="flex justify-start">
                         <div className="flex gap-3">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
@@ -267,27 +315,47 @@ export default function CoachMira({ interviewPhase, companyName, feedback, onCom
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div className="border-t border-neutral-800 p-4 flex-shrink-0">
-                <div className="flex gap-2">
+            {/* Input Area with Suggestions */}
+            <div className="border-t border-neutral-800 p-4 flex-shrink-0 flex flex-col gap-3">
+                {/* Suggestions Row */}
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                    {SUGGESTIONS.map((suggestion, index) => (
+                        <button
+                            key={index}
+                            onClick={() => handleSuggestionClick(suggestion)}
+                            disabled={isLoading}
+                            className="whitespace-nowrap px-4 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed border border-neutral-700 rounded-full text-xs text-neutral-300 transition-colors"
+                        >
+                            {suggestion}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Form */}
+                <form onSubmit={handleSubmit} className="flex gap-2">
                     <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={handleKeyPress}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSubmit(e);
+                            }
+                        }}
                         placeholder="Ask Mira for help with specific questions..."
                         className="flex-1 px-4 py-2 bg-neutral-800 border border-neutral-700 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-primary-500 resize-none"
                         rows={1}
                         style={{ minHeight: '44px', maxHeight: '100px' }}
                     />
                     <button
-                        onClick={sendMessage}
-                        disabled={!input.trim() || isLoading || isTyping}
+                        type="submit"
+                        disabled={!input.trim() || isLoading || isStarting}
                         className="w-10 h-10 rounded-lg bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center flex-shrink-0"
                     >
                         <Send className="w-4 h-4 text-white" />
                     </button>
-                </div>
-                <p className="text-xs text-neutral-500 mt-2 text-center">
+                </form>
+                <p className="text-xs text-neutral-500 text-center">
                     Mira remembers your interview performance and gives personalized coaching
                 </p>
             </div>

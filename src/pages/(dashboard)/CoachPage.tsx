@@ -1,12 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   ArrowLeftIcon,
   SendIcon,
   RefreshCwIcon,
   HomeIcon,
-  SparklesIcon,
-  MicIcon,
-  ThumbsUpIcon,
   BookOpenIcon } from
 'lucide-react';
 interface CoachPageProps {
