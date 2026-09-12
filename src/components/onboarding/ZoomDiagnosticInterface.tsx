@@ -6,9 +6,6 @@ import {
     VideoOffIcon,
     MessageSquareIcon,
     SparklesIcon,
-    ArrowRightIcon,
-    CheckCircle2Icon,
-    Volume2Icon,
     ClockIcon,
     BriefcaseIcon,
     Building2Icon,
@@ -17,7 +14,14 @@ import {
     MaximizeIcon,
     UsersIcon
 } from 'lucide-react';
-import Vapi from '@vapi-ai/web';
+import { vapiService } from '../../services/vapiService';
+
+// Configured in the Vapi dashboard so the voice and persona can be tuned
+// without a deploy. Absent in environments where it hasn't been set, in which
+// case the session falls back to a typed answer rather than failing.
+const DIAGNOSTIC_ASSISTANT_ID =
+    import.meta.env.VITE_VAPI_DIAGNOSTIC_ASSISTANT_ID ||
+    import.meta.env.VITE_VAPI_ONBOARDING_INTERVIEW_ASSISTANT_ID;
 
 export interface IntakeData {
     name: string;
@@ -28,7 +32,7 @@ export interface IntakeData {
 
 interface ZoomDiagnosticInterfaceProps {
     onCompleteIntake: (data: IntakeData) => void;
-    onFinishDiagnosticSession: (userTranscript: string) => void;
+    onFinishDiagnosticSession: (userTranscript: string, question?: string) => void;
     isProcessingScore: boolean;
 }
 
@@ -67,7 +71,6 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
     const [userName, setUserName] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
     const [selectedCompany, setSelectedCompany] = useState('');
-    const [selectedTimeline, setSelectedTimeline] = useState<number>(7);
 
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOn, setIsVideoOn] = useState(true);
@@ -78,23 +81,25 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
     const [diagnosticTimer, setDiagnosticTimer] = useState(60);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [isSessionActive, setIsSessionActive] = useState(false);
-    const [vapiInstance, setVapiInstance] = useState<Vapi | null>(null);
 
-    const speakText = (text: string, onEndCallback?: () => void) => {
+    // Voice call state
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [isCallLive, setIsCallLive] = useState(false);
+    const [callStatus, setCallStatus] = useState('');
+    const [voiceError, setVoiceError] = useState<string | null>(null);
+    /** Accumulated transcript of what the candidate actually said. */
+    const [spokenAnswer, setSpokenAnswer] = useState('');
+    /** The question the assistant asked, captured for the scorer. */
+    const [currentQuestion, setCurrentQuestion] = useState('');
+
+    /**
+     * Intake is captioned, not spoken. The browser's speechSynthesis voice is
+     * what made this sound synthetic, and mixing it with the Vapi voice that
+     * runs the interview would be worse than silence. The interviewer only
+     * speaks once the real call starts.
+     */
+    const showAiMessage = (text: string) => {
         setAiSpeechText(text);
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            utterance.onstart = () => setIsAiSpeaking(true);
-            utterance.onend = () => {
-                setIsAiSpeaking(false);
-                if (onEndCallback) onEndCallback();
-            };
-            utterance.onerror = () => setIsAiSpeaking(false);
-            window.speechSynthesis.speak(utterance);
-        }
     };
 
     // Elapsed time counter (like Zoom recording timer)
@@ -128,23 +133,22 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
     const handleInitiateInterview = () => {
         setStep('QUESTION_ROLE');
         setIsSessionActive(true);
-        speakText("Hi! Welcome to PrepMirrors. I'm going to ask you a couple of questions to prepare the best interview for you. First, what target role are you interviewing for?");
+        showAiMessage("Welcome to PrepMirrors. A couple of quick questions so I can tailor this. First — what role are you interviewing for?");
     };
 
     const handleRoleSelected = (role: string) => {
         setSelectedRole(role);
         setStep('QUESTION_COMPANY');
-        speakText(`Got it, ${role}. Which target company are you interviewing at?`);
+        showAiMessage(`Got it, ${role}. Which company are you interviewing at?`);
     };
 
     const handleCompanySelected = (company: string) => {
         setSelectedCompany(company);
         setStep('QUESTION_TIMELINE');
-        speakText(`Awesome, ${company}! When is your target interview date?`);
+        showAiMessage(`${company}. And when is the interview?`);
     };
 
-    const handleTimelineSelected = (days: number) => {
-        setSelectedTimeline(days);
+    const handleTimelineSelected = async (days: number) => {
         onCompleteIntake({
             name: userName || 'Candidate',
             role: selectedRole,
@@ -152,15 +156,97 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
             timelineDays: days
         });
         setStep('DIAGNOSTIC_SESSION');
-        speakText(`Perfect. Let's begin your 60-second diagnostic interview. Tell me about a challenging project you led at work. How did you structure your approach and what was the quantifiable impact?`);
+
+        // The mic is requested here rather than at the start: by this point
+        // they've made three choices and can see what they're getting.
+        await startVoiceSession(days);
     };
 
-    const handleFinishSession = () => {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-        if (vapiInstance) vapiInstance.stop();
+    const startVoiceSession = async (days: number) => {
+        if (!DIAGNOSTIC_ASSISTANT_ID) {
+            setVoiceError('Voice interview is not configured yet. You can type your answer instead.');
+            setIsTextMode(true);
+            return;
+        }
+
+        if (!vapiService.isVoiceSupported()) {
+            setVoiceError('Your browser blocked microphone access. You can type your answer instead.');
+            setIsTextMode(true);
+            return;
+        }
+
+        setVoiceError(null);
+        setIsConnecting(true);
+        showAiMessage('Connecting…');
+
+        try {
+            await vapiService.startInterview(
+                DIAGNOSTIC_ASSISTANT_ID,
+                '',
+                {
+                    variables: {
+                        role: selectedRole,
+                        company: selectedCompany,
+                        timelineDays: String(days),
+                    },
+                },
+                {
+                    onCallStart: () => {
+                        setIsConnecting(false);
+                        setIsCallLive(true);
+                        setIsAiSpeaking(true);
+                    },
+                    onCallEnd: () => {
+                        setIsCallLive(false);
+                        setIsAiSpeaking(false);
+                    },
+                    // Vapi emits partial transcripts as the candidate speaks;
+                    // accumulate them so the whole answer reaches the scorer.
+                    onTranscript: (text: string) => {
+                        setIsAiSpeaking(false);
+                        setSpokenAnswer((prev) => (prev ? `${prev} ${text}` : text).trim());
+                    },
+                    // The assistant picks its own question from the role and
+                    // seniority, so capture it — the scorer needs to know what
+                    // was asked to judge the answer against it.
+                    onAssistantTranscript: (text: string) => {
+                        setIsAiSpeaking(true);
+                        showAiMessage(text);
+                        setCurrentQuestion((prev) => prev || text);
+                    },
+                    onError: () => {
+                        setIsConnecting(false);
+                        setIsCallLive(false);
+                        setVoiceError('The call dropped. You can retry, or type your answer instead.');
+                        setIsTextMode(true);
+                    },
+                    onStatusUpdate: (status: string) => setCallStatus(status),
+                }
+            );
+        } catch {
+            setIsConnecting(false);
+            setVoiceError("We couldn't start the call. You can type your answer instead.");
+            setIsTextMode(true);
+        }
+    };
+
+    const handleFinishSession = async () => {
+        await vapiService.stopInterview().catch(() => undefined);
+        setIsCallLive(false);
         setIsSessionActive(false);
-        const finalAnswer = typedAnswer || "I led the microservice refactoring team to reduce API latency by 40% using Datadog and GraphQL caching.";
-        onFinishDiagnosticSession(finalAnswer);
+
+        // Whatever they actually said, or actually typed. There is deliberately
+        // no stand-in answer: scoring an invented response and presenting it as
+        // the candidate's own reading is worse than asking them to try again.
+        const finalAnswer = (spokenAnswer || typedAnswer).trim();
+
+        if (!finalAnswer) {
+            setVoiceError("We didn't catch an answer. Have another go, or type it instead.");
+            setIsTextMode(true);
+            return;
+        }
+
+        onFinishDiagnosticSession(finalAnswer, currentQuestion || undefined);
     };
 
     return (
@@ -331,6 +417,29 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
                                     </button>
                                 ))}
                             </div>
+                        </div>
+                    )}
+
+                    {step === 'DIAGNOSTIC_SESSION' && (isConnecting || isCallLive || voiceError) && (
+                        <div className="py-2 space-y-2">
+                            {isConnecting && (
+                                <p className="text-center text-xs text-white/50">
+                                    {callStatus || 'Connecting to your interviewer…'}
+                                </p>
+                            )}
+
+                            {isCallLive && (
+                                <div className="flex items-center justify-center gap-2 text-xs text-secondary-400">
+                                    <span className="w-2 h-2 rounded-full bg-secondary-400 animate-pulse" />
+                                    <span>{isAiSpeaking ? 'Interviewer speaking…' : 'Listening — answer out loud'}</span>
+                                </div>
+                            )}
+
+                            {voiceError && (
+                                <p role="alert" className="text-center text-xs text-amber-300/90">
+                                    {voiceError}
+                                </p>
+                            )}
                         </div>
                     )}
 

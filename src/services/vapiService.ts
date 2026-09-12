@@ -4,6 +4,11 @@ export interface VapiCallbacks {
   onCallStart?: () => void;
   onCallEnd?: () => void;
   onTranscript?: (text: string) => void;
+  /**
+   * What the interviewer said. Needed when the assistant chooses the question
+   * itself, since scoring an answer requires knowing what was asked.
+   */
+  onAssistantTranscript?: (text: string) => void;
   onError?: (error: Error) => void;
   onStatusUpdate?: (status: string) => void;
 }
@@ -39,18 +44,19 @@ class VapiService {
       this.currentCallbacks.onStatusUpdate?.('Call ended');
     });
 
-    // User transcript (what the user said)
     this.vapi.on('message', (message: any) => {
-      console.log('Message:', message);
-      
-      if (message.type === 'transcript' && message.role === 'user') {
-        const transcript = message.transcript;
-        console.log('User said:', transcript);
-        this.currentCallbacks.onTranscript?.(transcript);
+      if (message.type !== 'transcript') return;
+
+      // Only final transcripts: Vapi also streams partials for the same
+      // utterance, and appending those would repeat fragments of the answer.
+      if (message.transcriptType && message.transcriptType !== 'final') return;
+
+      if (message.role === 'user') {
+        this.currentCallbacks.onTranscript?.(message.transcript);
       }
-      
-      if (message.type === 'transcript' && message.role === 'assistant') {
-        console.log('Assistant said:', message.transcript);
+
+      if (message.role === 'assistant') {
+        this.currentCallbacks.onAssistantTranscript?.(message.transcript);
       }
     });
 
