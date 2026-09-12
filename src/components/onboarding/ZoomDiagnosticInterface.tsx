@@ -93,6 +93,9 @@ const POPULAR_COMPANIES = [
     'Startup / Other'
 ];
 
+/** How long to wait for the call to connect before giving up on it. */
+const CONNECT_TIMEOUT_MS = 15000;
+
 /**
  * Call budget, in seconds of live audio.
  *
@@ -157,6 +160,10 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
     const sentCuesRef = React.useRef<Set<string>>(new Set());
     /** The first utterance is the name, not the answer. */
     const nameCapturedRef = React.useRef(false);
+    /** Backstop for a connect that never completes and never errors. */
+    const connectTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+    /** Mirrors isCallLive for reads inside timers, which see stale state. */
+    const callLiveRef = React.useRef(false);
 
     /**
      * Intake is captioned, not spoken. The browser's speechSynthesis voice is
@@ -256,7 +263,10 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
 
     const handleTimelineSelected = async (days: number) => {
         onCompleteIntake({
-            name: userName || 'Candidate',
+            // Left empty when unknown rather than defaulting to a placeholder:
+            // the name is asked for on the call, and greeting someone as
+            // "Candidate" is worse than not greeting them by name at all.
+            name: userName,
             role: selectedRole,
             company: selectedCompany,
             timelineDays: days
@@ -276,7 +286,23 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
         }
 
         if (!vapiService.isVoiceSupported()) {
-            setVoiceError('Your browser blocked microphone access. You can type your answer instead.');
+            setVoiceError('Voice isn\'t available in this browser. You can type your answer instead.');
+            setIsTextMode(true);
+            return;
+        }
+
+        // Ask for the microphone ourselves first. isVoiceSupported only tells us
+        // the API exists, not that permission was granted, and Vapi given a
+        // blocked mic neither connects nor reliably raises an error — it just
+        // sits there. Requesting up front turns that hang into a clear failure
+        // we can act on.
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // Vapi acquires its own stream; release this one so we don't hold
+            // the device open alongside it.
+            stream.getTracks().forEach((track) => track.stop());
+        } catch {
+            setVoiceError('We couldn\'t access your microphone. Allow it in your browser, or type your answer instead.');
             setIsTextMode(true);
             return;
         }
@@ -287,7 +313,18 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
         setCallSeconds(0);
         sentCuesRef.current.clear();
         nameCapturedRef.current = false;
+        callLiveRef.current = false;
         showAiMessage('Connecting…');
+
+        // If neither call-start nor an error arrives, don't strand them on
+        // a spinner — fall through to typing.
+        connectTimeoutRef.current = setTimeout(() => {
+            if (callLiveRef.current) return;
+            vapiService.stopInterview().catch(() => undefined);
+            setIsConnecting(false);
+            setVoiceError("The interviewer didn't pick up. You can retry, or type your answer instead.");
+            setIsTextMode(true);
+        }, CONNECT_TIMEOUT_MS);
 
         try {
             await vapiService.startInterview(
@@ -302,11 +339,14 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
                 },
                 {
                     onCallStart: () => {
+                        if (connectTimeoutRef.current) clearTimeout(connectTimeoutRef.current);
+                        callLiveRef.current = true;
                         setIsConnecting(false);
                         setIsCallLive(true);
                         setIsAiSpeaking(true);
                     },
                     onCallEnd: () => {
+                        callLiveRef.current = false;
                         setIsCallLive(false);
                         setIsAiSpeaking(false);
                     },
@@ -341,6 +381,7 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
                         setCurrentQuestion((prev) => prev || text);
                     },
                     onError: () => {
+                        if (connectTimeoutRef.current) clearTimeout(connectTimeoutRef.current);
                         setIsConnecting(false);
                         setIsCallLive(false);
                         setVoiceError('The call dropped. You can retry, or type your answer instead.');
