@@ -1,14 +1,11 @@
-const API_URL = import.meta.env.VITE_API_URL 
+import { apiClient } from "./client";
 
 export const dashboardApi = {
+    // Marks the walkthrough seen for the signed-in user; userId is ignored
+    // server-side in favour of the bearer token.
     markWalkthroughComplete: async (userId: string): Promise<{ success: boolean }> => {
         try {
-            const response = await fetch(`${API_URL}/api/user/mark-walkthrough`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId }),
-            });
-            return await response.json();
+            return await apiClient.post('/api/user/mark-walkthrough', { userId });
         } catch (error) {
             return { success: false };
         }

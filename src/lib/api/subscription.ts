@@ -1,4 +1,4 @@
-
+import { apiClient } from "./client";
 
 export interface Subscription {
     tier: 'free' | 'pro';
@@ -9,14 +9,13 @@ export interface Subscription {
     resetDate?: string;
     price: number
 }
-const API_URL = import.meta.env.VITE_API_URL 
 
+// Subscription state is read from the bearer token server-side; the userId
+// arguments are retained for call-site compatibility only.
 export const subscriptionApi = {
     getStatus: async (userId: string): Promise<{ success: boolean; data?: Subscription; error?: string }> => {
         try {
-            
-            const response = await fetch(`${API_URL}/api/subscription/status/${userId}`);
-            return await response.json();
+            return await apiClient.get(`/api/subscription/status/${userId}`);
         } catch (error) {
             return { success: false, error: 'Failed to fetch subscription' };
         }
@@ -24,8 +23,7 @@ export const subscriptionApi = {
 
     canInterview: async (userId: string): Promise<{ success: boolean; allowed: boolean; remaining?: number; reason?: string }> => {
         try {
-            const response = await fetch(`${API_URL}/api/subscription/can-interview/${userId}`);
-            return await response.json();
+            return await apiClient.get(`/api/subscription/can-interview/${userId}`);
         } catch (error) {
             return { success: false, allowed: false, reason: 'Network error' };
         }
@@ -33,13 +31,7 @@ export const subscriptionApi = {
 
     getPortalUrl: async (userId: string) => {
         try {
-            const response = await fetch(`${API_URL}/api/subscription/portal-url`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId }),
-            });
-
-            return await response.json();
+            return await apiClient.post('/api/subscription/portal-url', { userId });
         } catch (error) {
             return { success: false, allowed: false, reason: 'Network error' };
         }
@@ -47,16 +39,7 @@ export const subscriptionApi = {
 
     upgrade: async (userId: string, variantId: string) => {
         try {
-            const response = await fetch(`${API_URL}/api/subscription/checkout-url`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId,
-                    variantId
-                }),
-            });
-
-            return await response.json();
+            return await apiClient.post('/api/subscription/checkout-url', { userId, variantId });
         } catch (error) {
             return { success: false, allowed: false, reason: 'Network error' };
         }

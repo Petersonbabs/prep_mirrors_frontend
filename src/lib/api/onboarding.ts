@@ -1,7 +1,7 @@
 import { AiProvider, FeedbackResponse } from "../types";
+import { apiClient } from "./client";
 
 // frontend/src/lib/api/onboarding.ts
-const API_URL = import.meta.env.VITE_API_URL 
 
 export interface generateQuestionsParams {
   profileId: string,
@@ -18,44 +18,31 @@ export interface GetMyQuestionsResponse {
   questions: string[];
 }
 
+// All onboarding endpoints require a bearer token and resolve the profile from
+// it server-side; the profileId arguments here are not what grants access.
 export const onboardingApi = {
   generateQuestions: async (data: generateQuestionsParams) => {
-    const response = await fetch(`${API_URL}/api/onboarding/generate-questions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return response.json();
+    return apiClient.post('/api/onboarding/generate-questions', data);
   },
 
   getMyOnboardingQuestions: async (profileId: string): Promise<GetMyQuestionsResponse> => {
-    const response = await fetch(`${API_URL}/api/onboarding/my-questions/${profileId}`);
-    return response.json();
+    return apiClient.get(`/api/onboarding/my-questions/${profileId}`);
   },
 
-  submitAnswers: async (profileId: string,  conversation: Array<{ role: string; content: string }>, userProfile: any) => {
-    const response = await fetch(`${API_URL}/api/onboarding/submit-answers`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profileId, conversation, userProfile, interviewType: "mixed" }),
+  submitAnswers: async (profileId: string, conversation: Array<{ role: string; content: string }>, userProfile: any) => {
+    return apiClient.post('/api/onboarding/submit-answers', {
+      profileId,
+      conversation,
+      userProfile,
+      interviewType: "mixed",
     });
-    return response.json();
   },
 
   saveConfidence: async (profileId: string, postConfidenceScore: number) => {
-    const response = await fetch(`${API_URL}/api/onboarding/save-confidence`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ profileId, postConfidenceScore }),
-    });
-    return response.json();
+    return apiClient.post('/api/onboarding/save-confidence', { profileId, postConfidenceScore });
   },
 
   getMyFeedback: async (profileId: string): Promise<FeedbackResponse> => {
-    const response = await fetch(`${API_URL}/api/onboarding/feedback/${profileId}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-    return response.json();
+    return apiClient.get(`/api/onboarding/feedback/${profileId}`);
   },
 };

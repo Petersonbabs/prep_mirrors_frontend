@@ -1,19 +1,16 @@
 // frontend/src/lib/api/user.ts
-const API_URL = import.meta.env.VITE_API_URL 
+import { apiClient } from "./client";
 
 export const userApi = {
+    // The profile updated is always the signed-in user's; userId is sent only
+    // for backward compatibility and is ignored by the server.
     updateProfile: async (userId: string, data: {
         target_role?: string;
         experience_level?: string;
         goal?: string;
     }): Promise<{ success: boolean; error?: string }> => {
         try {
-            const response = await fetch(`${API_URL}/api/user/update-profile`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, ...data }),
-            });
-            return await response.json();
+            return await apiClient.put('/api/update-profile', { userId, ...data });
         } catch (error) {
             return { success: false, error: 'Network error' };
         }
