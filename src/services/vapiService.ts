@@ -97,6 +97,29 @@ class VapiService {
     }
   }
 
+  /**
+   * Injects a system message into a live call.
+   *
+   * The model has no clock, so anything time-dependent has to be told to it.
+   * A message added this way is only acted on at the assistant's next turn,
+   * which is what keeps a wrap-up instruction from cutting the candidate off
+   * mid-answer.
+   */
+  sendSystemMessage(content: string): void {
+    if (!this.vapi || !this.isInitialized) return;
+
+    try {
+      this.vapi.send({
+        type: 'add-message',
+        message: { role: 'system', content },
+      });
+    } catch (error) {
+      // Never surface this: a dropped time cue degrades the wrap-up, but the
+      // call itself is still fine and the hard duration cap still applies.
+      console.warn('Failed to send system message to assistant:', error);
+    }
+  }
+
   async stopInterview(): Promise<void> {
     if (this.vapi && this.isInitialized) {
       await this.vapi.stop();

@@ -54,6 +54,27 @@ const POPULAR_COMPANIES = [
     'Startup / Other'
 ];
 
+/**
+ * Call budget, in seconds of live audio.
+ *
+ * The agent has no clock of its own, so the client tells it where it stands at
+ * these marks. Each cue is acted on at the agent's next turn, so a wrap-up
+ * instruction can never interrupt an answer in progress — worst case the
+ * candidate talks past the mark and the agent closes as soon as they stop.
+ *
+ * The assistant's own maxDurationSeconds should sit well above WRAP_UP (180s is
+ * sensible) so it stays a backstop for a wedged call rather than a guillotine
+ * that cuts someone off mid-sentence.
+ */
+const CALL_BUDGET = {
+    /** Stop opening new threads; whatever is being asked now is the last one. */
+    LAST_QUESTION_AT: 75,
+    /** Close out as soon as the candidate stops speaking. */
+    WRAP_UP_AT: 100,
+    /** Client-side stop, if the agent hasn't ended the call itself by now. */
+    HARD_STOP_AT: 140,
+};
+
 const TIMELINE_OPTIONS = [
     { label: '⚡ Within 7 Days', days: 7 },
     { label: '📅 Within 14 Days', days: 14 },
@@ -91,6 +112,9 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
     const [spokenAnswer, setSpokenAnswer] = useState('');
     /** The question the assistant asked, captured for the scorer. */
     const [currentQuestion, setCurrentQuestion] = useState('');
+    /** Seconds of live call, which is what the cost and the cues are based on. */
+    const [callSeconds, setCallSeconds] = useState(0);
+    const sentCuesRef = React.useRef<Set<string>>(new Set());
 
     /**
      * Intake is captioned, not spoken. The browser's speechSynthesis voice is
@@ -112,6 +136,46 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
         }
         return () => clearInterval(interval);
     }, [isSessionActive]);
+
+    // Live-call clock. Only runs while audio is actually flowing, so the budget
+    // tracks billed time rather than how long the page has been open.
+    useEffect(() => {
+        if (!isCallLive) return;
+        const interval = setInterval(() => setCallSeconds((s) => s + 1), 1000);
+        return () => clearInterval(interval);
+    }, [isCallLive]);
+
+    // Feed the agent its remaining time. Each cue fires once.
+    useEffect(() => {
+        if (!isCallLive) return;
+
+        const cue = (key: string, content: string) => {
+            if (sentCuesRef.current.has(key)) return;
+            sentCuesRef.current.add(key);
+            vapiService.sendSystemMessage(content);
+        };
+
+        if (callSeconds >= CALL_BUDGET.LAST_QUESTION_AT && callSeconds < CALL_BUDGET.WRAP_UP_AT) {
+            cue(
+                'last-question',
+                `TIME CHECK: about ${CALL_BUDGET.WRAP_UP_AT - CALL_BUDGET.LAST_QUESTION_AT} seconds of question time left. ` +
+                `Do not start a new topic. If you are mid-question, finish it. If the candidate is speaking, let them finish uninterrupted.`
+            );
+        }
+
+        if (callSeconds >= CALL_BUDGET.WRAP_UP_AT) {
+            cue(
+                'wrap-up',
+                `TIME CHECK: time is up. Do not ask anything further. The moment the candidate stops speaking, thank them warmly in one short sentence and end the call. Never cut them off mid-sentence.`
+            );
+        }
+
+        // Backstop: the agent should have closed by now. Ending here still hands
+        // the captured transcript to the scorer, so nothing is lost.
+        if (callSeconds >= CALL_BUDGET.HARD_STOP_AT) {
+            handleFinishSession();
+        }
+    }, [callSeconds, isCallLive]);
 
     // Diagnostic countdown
     useEffect(() => {
@@ -177,6 +241,9 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
 
         setVoiceError(null);
         setIsConnecting(true);
+        // Fresh budget per attempt, so a retry isn't born already out of time.
+        setCallSeconds(0);
+        sentCuesRef.current.clear();
         showAiMessage('Connecting…');
 
         try {
