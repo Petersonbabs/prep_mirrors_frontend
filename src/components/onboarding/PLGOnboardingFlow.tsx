@@ -89,8 +89,10 @@ export const PLGOnboardingFlow: React.FC = () => {
         handleFinishDiagnostic(lastTranscript, lastQuestion || undefined);
     };
 
-    const handleAuthenticate = (email: string) => {
+    const handleAuthenticate = (email: string, name?: string) => {
         setUserAuthEmail(email);
+        // Prefer the spelling they corrected over what we heard on the call.
+        if (name) setIntake((prev) => ({ ...prev, name }));
         // In real app, trigger Supabase auth (signInWithOtp or signUp)
     };
 
@@ -152,6 +154,7 @@ export const PLGOnboardingFlow: React.FC = () => {
                     <ZoomDiagnosticInterface
                         onCompleteIntake={handleIntakeComplete}
                         onFinishDiagnosticSession={handleFinishDiagnostic}
+                        onNameCaptured={(name) => setIntake((prev) => ({ ...prev, name }))}
                         isProcessingScore={isEvaluating}
                     />
 
@@ -179,6 +182,7 @@ export const PLGOnboardingFlow: React.FC = () => {
             {currentStep === 'SCORECARD' && evaluationResult && (
                 <DiagnosticScorecard
                     scoreData={evaluationResult}
+                    name={intake.name}
                     role={intake.role || 'Software Engineer'}
                     company={intake.company || 'Tech Company'}
                     timelineDays={intake.timelineDays || 7}

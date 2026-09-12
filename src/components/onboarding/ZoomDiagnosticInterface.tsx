@@ -33,8 +33,47 @@ export interface IntakeData {
 interface ZoomDiagnosticInterfaceProps {
     onCompleteIntake: (data: IntakeData) => void;
     onFinishDiagnosticSession: (userTranscript: string, question?: string) => void;
+    /** Fires when the candidate says what to call them, early in the call. */
+    onNameCaptured?: (name: string) => void;
     isProcessingScore: boolean;
 }
+
+/**
+ * Pulls a usable first name out of the candidate's reply to "what should I
+ * call you?", which arrives as loose speech: "um, it's Timi", "Timi, thanks".
+ *
+ * This is intentionally forgiving rather than clever. The name is confirmed
+ * back by the interviewer and shown in an editable field before it is ever
+ * used for anything, so a bad parse is visible and correctable rather than
+ * silently wrong.
+ */
+const extractName = (utterance: string): string => {
+    const cleaned = utterance
+        .replace(/[^\p{L}\p{N}\s'-]/gu, ' ')
+        // "name's Sarah" has to go before "name", or the possessive is left behind.
+        .replace(/\b(my |the )?names?'?s?\b/gi, ' ')
+        .replace(/\b(um+|uh+|er+|hi|hey|hello|yeah|yes|sure|ok|okay|so|well|my|is|it'?s|i'?m|you|can|call|me|please|thanks?|rather|not|say|prefer|just)\b/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    if (!cleaned) return '';
+
+    // Keep it to a first name; anything longer is usually mis-transcription.
+    const first = cleaned.split(' ')[0];
+
+    // Must look like a name: starts with a letter, no leftover contraction.
+    // Someone saying "I'd rather not say" must not end up named "I'd", and
+    // over-rejecting is safe here — we simply carry on without a name.
+    if (!/^\p{L}[\p{L}'-]*$/u.test(first)) return '';
+    if (/'(d|s|m|re|ll|ve|t)$/i.test(first)) return '';
+    if (first.length < 2 || first.length > 20) return '';
+
+    // Capitalise across apostrophes and hyphens so O'Brien and Jean-Luc keep
+    // their internal capitals instead of becoming O'brien and Jean-luc.
+    return first
+        .toLowerCase()
+        .replace(/(^|['-])(\p{L})/gu, (_, sep, letter) => sep + letter.toUpperCase());
+};
 
 const POPULAR_ROLES = [
     'Software Engineer',
@@ -85,6 +124,7 @@ const TIMELINE_OPTIONS = [
 export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = ({
     onCompleteIntake,
     onFinishDiagnosticSession,
+    onNameCaptured,
     isProcessingScore
 }) => {
     const [step, setStep] = useState<'INIT' | 'QUESTION_ROLE' | 'QUESTION_COMPANY' | 'QUESTION_TIMELINE' | 'DIAGNOSTIC_SESSION'>('INIT');
@@ -115,6 +155,8 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
     /** Seconds of live call, which is what the cost and the cues are based on. */
     const [callSeconds, setCallSeconds] = useState(0);
     const sentCuesRef = React.useRef<Set<string>>(new Set());
+    /** The first utterance is the name, not the answer. */
+    const nameCapturedRef = React.useRef(false);
 
     /**
      * Intake is captioned, not spoken. The browser's speechSynthesis voice is
@@ -244,6 +286,7 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
         // Fresh budget per attempt, so a retry isn't born already out of time.
         setCallSeconds(0);
         sentCuesRef.current.clear();
+        nameCapturedRef.current = false;
         showAiMessage('Connecting…');
 
         try {
@@ -271,6 +314,22 @@ export const ZoomDiagnosticInterface: React.FC<ZoomDiagnosticInterfaceProps> = (
                     // accumulate them so the whole answer reaches the scorer.
                     onTranscript: (text: string) => {
                         setIsAiSpeaking(false);
+
+                        // The interviewer opens by asking what to call them, so
+                        // the first thing they say is their name, not their
+                        // answer. Keeping it out of the transcript matters: the
+                        // scorer would otherwise mark them down for opening
+                        // with "um, it's Timi".
+                        if (!nameCapturedRef.current) {
+                            nameCapturedRef.current = true;
+                            const name = extractName(text);
+                            if (name) {
+                                setUserName(name);
+                                onNameCaptured?.(name);
+                            }
+                            return;
+                        }
+
                         setSpokenAnswer((prev) => (prev ? `${prev} ${text}` : text).trim());
                     },
                     // The assistant picks its own question from the role and

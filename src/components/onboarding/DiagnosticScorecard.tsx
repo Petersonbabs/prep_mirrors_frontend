@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     SparklesIcon,
     CheckCircle2Icon,
@@ -15,15 +15,19 @@ import { DiagnosticEvaluationSchema } from '../../lib/types/diagnostic.types';
 
 interface DiagnosticScorecardProps {
     scoreData: DiagnosticEvaluationSchema;
+    /** Heard over the call, so it may be mis-transcribed — always editable. */
+    name?: string;
     role: string;
     company: string;
     timelineDays: number;
     onProceedToPaywall: () => void;
-    onAuthenticate: (email: string) => void;
+    /** Email, plus the name as corrected by the candidate. */
+    onAuthenticate: (email: string, name?: string) => void;
 }
 
 export const DiagnosticScorecard: React.FC<DiagnosticScorecardProps> = ({
     scoreData,
+    name,
     role,
     company,
     timelineDays,
@@ -32,14 +36,20 @@ export const DiagnosticScorecard: React.FC<DiagnosticScorecardProps> = ({
 }) => {
     const [isUnlocked, setIsUnlocked] = useState(false);
     const [authEmail, setAuthEmail] = useState('');
+    const [editableName, setEditableName] = useState(name ?? '');
     const [isSubmittingAuth, setIsSubmittingAuth] = useState(false);
+
+    // The name arrives mid-call, after this may already have rendered.
+    useEffect(() => {
+        if (name) setEditableName(name);
+    }, [name]);
 
     const handleUnlock = (e: React.FormEvent) => {
         e.preventDefault();
         if (!authEmail) return;
         setIsSubmittingAuth(true);
         setTimeout(() => {
-            onAuthenticate(authEmail);
+            onAuthenticate(authEmail, editableName.trim() || undefined);
             setIsUnlocked(true);
             setIsSubmittingAuth(false);
         }, 600);
@@ -58,7 +68,7 @@ export const DiagnosticScorecard: React.FC<DiagnosticScorecardProps> = ({
                             <span>AI Diagnostic Scorecard • {role} @ {company}</span>
                         </div>
                         <h2 className="font-display font-bold text-3xl sm:text-4xl leading-tight">
-                            Your Diagnostic Baseline
+                            {editableName ? `${editableName}, here's your baseline` : 'Your Diagnostic Baseline'}
                         </h2>
                         <p className="text-sm text-neutral-400 max-w-md">
                             Evaluated using real FAANG recruiter rubrics, STAR completeness metrics, and speech density analysis.
@@ -117,6 +127,17 @@ export const DiagnosticScorecard: React.FC<DiagnosticScorecardProps> = ({
                     </div>
 
                     <form onSubmit={handleUnlock} className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
+                        {/* Pre-filled from what we heard on the call. Editable
+                            because speech-to-text mangles names, and a name we
+                            got wrong is worse than no name at all. */}
+                        <input
+                            type="text"
+                            placeholder="Your name"
+                            value={editableName}
+                            onChange={(e) => setEditableName(e.target.value)}
+                            aria-label="Your name"
+                            className="sm:w-36 bg-neutral-50 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-xl px-4 py-3 text-sm text-neutral-900 dark:text-white focus:outline-none focus:border-primary-500"
+                        />
                         <input
                             type="email"
                             required
