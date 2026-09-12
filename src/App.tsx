@@ -18,26 +18,12 @@ import { Toaster } from 'sonner';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type Page = 'dashboard' | 'progress' | 'pricing' | 'account' | 'settings';
-export interface InterviewData {
-  id: string;
-  company: string;
-  role: string;
-  salary: string;
-  jobType: string;
-  location: string;
-  phase: 'technical' | 'behavioral';
-  difficulty: string;
-  logo: string;
-}
 // Pages that hide the navbar
 const HIDDEN_NAVBAR_PATHS = ['/onboarding', '/auth', '/admin'];
-// Pages that show the sidebar (logged-in dashboard area)
+// Pages that show the sidebar (logged-in dashboard area). The interview itself
+// is deliberately absent: /dashboard/interview/:companyId runs full-bleed.
 const SIDEBAR_PATHS = [
   '/dashboard',
-  '/dashboard/interview-script',
-  '/dashboard/interview-session',
-  '/dashboard/feedback',
-  '/dashboard/coach',
   '/dashboard/progress',
   '/dashboard/account',
   '/dashboard/billing',

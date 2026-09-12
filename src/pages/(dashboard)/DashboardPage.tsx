@@ -22,11 +22,6 @@ import { PushPermissionPrompt } from '../../components/ui/PushPermissionPrompt';
 import { UnderDevelopmentComponent } from '../../utils/utils';
 
 
-interface DashboardPageProps {
-  onStartInterview: (interview: any) => void;
-  onWalkthroughComplete?: () => void;
-}
-
 const DashboardSkeleton = () => (
   <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 w-full animate-fade-in">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -44,7 +39,7 @@ const DashboardSkeleton = () => (
   </div>
 );
 
-export function DashboardPage({ onWalkthroughComplete: _onWalkthroughComplete }: DashboardPageProps) {
+export function DashboardPage() {
   const { subscription, loading, stats, firstName } = useDashboardData();
   const { user, profile, refreshProfile } = useAuth();
   const [filter, setFilter] = useState<'all' | 'Easy' | 'Medium' | 'Hard'>('all');
@@ -57,12 +52,12 @@ export function DashboardPage({ onWalkthroughComplete: _onWalkthroughComplete }:
   const timeOfDay = new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening';
   const navigate = useNavigate();
 
+  // Interviews live under the dashboard: the route is
+  // /dashboard/interview/:companyId. Navigating to /interview/:companyId lands
+  // on the public layout, which has no match for it and renders a blank page.
   const handleStartInterview = (companyId: string, companyName: string) => {
-    navigate(`/interview/${companyId}`, { state: { companyName } });
+    navigate(`/dashboard/interview/${companyId}`, { state: { companyName } });
   };
-
-  
-  
 
   useEffect(() => {
     if (!isSubscribed && permission !== 'denied') {
@@ -179,13 +174,17 @@ export function DashboardPage({ onWalkthroughComplete: _onWalkthroughComplete }:
             </div>
             <div className="flex items-center gap-2">
 
-              <button
-                onClick={() => handleStartInterview(companies[0].id, companies[0].name)}
-                className="quick-start-btn flex items-center gap-2 px-5 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-2xl transition-colors shadow-soft whitespace-nowrap"
-              >
-                <ZapIcon className="w-4 h-4" />
-                <span>Quick Start</span>
-              </button>
+              {/* Only rendered with a company to start: companies[0] would
+                  otherwise throw for a user whose list is empty. */}
+              {companies.length > 0 && (
+                <button
+                  onClick={() => handleStartInterview(companies[0].id, companies[0].name)}
+                  className="quick-start-btn flex items-center gap-2 px-5 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-2xl transition-colors shadow-soft whitespace-nowrap"
+                >
+                  <ZapIcon className="w-4 h-4" />
+                  <span>Quick Start</span>
+                </button>
+              )}
             </div>
           </div>
 

@@ -1,5 +1,4 @@
 // frontend/src/lib/api/interview.ts
-import { supabase } from "../supabase";
 import { Feedback } from "../types";
 import { SessionPhase } from "../types/interview.types";
 import { apiClient } from "./client";
