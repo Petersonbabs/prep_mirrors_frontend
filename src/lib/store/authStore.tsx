@@ -46,17 +46,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     avatar_url: data.avatar_url || '',
                     targetRole: data.target_role || '',
                     level: data.experience_level || '',
-                    goal: data.biggest_challenge || '',
+                    // `goal` is the canonical column; `biggest_challenge` is the
+                    // older name kept as a fallback for profiles not yet backfilled.
+                    goal: data.goal || data.biggest_challenge || '',
                     hiring_timeline: data.hiring_timeline || '',
                     last_onboarding_step: data.last_onboarding_step || 0,
                     pre_first_interview_confidence: data.pre_first_interview_confidence,
                     post_first_interview_confidence: data.post_first_interview_confidence,
                     onboarding_completed: data.onboarding_completed,
                     email: data.email || '',
-                    plan_type: data.plan_type || 'free',
                     subscription_status: data.subscription_status || 'free',
-                    trial_end_date: data.trial_end_date,
-                    next_billing_date: data.next_billing_date,
+                    // profiles has trial_ends_at; there are no plan_type or
+                    // next_billing_date columns, so those mappings were always
+                    // undefined. Tier comes from subscription_tier.
+                    trial_end_date: data.trial_ends_at,
                     subscription_tier: data.subscription_tier,
                     has_seen_walkthrough: data.has_seen_walkthrough
                 });

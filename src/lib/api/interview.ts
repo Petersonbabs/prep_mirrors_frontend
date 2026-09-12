@@ -119,17 +119,12 @@ export const interviewApi = {
     return apiClient.get(`/api/interview/session/${sessionId}/feedback`);
   },
 
-  getLatestUserFeedback: async (userId: string) => {
-    // Fetch from interview_sessions table
-    const { data } = await supabase
-      .from('interview_sessions')
-      .select('feedback')
-      .eq('profile_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    return data?.feedback || null;
+  // Goes through the API rather than querying interview_sessions directly:
+  // that table has RLS enabled with no client-facing policy, so the direct
+  // read always came back empty.
+  getLatestUserFeedback: async (_userId?: string) => {
+    const res = await apiClient.get('/api/interview/feedback/latest');
+    return res?.data || null;
   },
 
   generateFeedback: async (sessionId: string) => {
