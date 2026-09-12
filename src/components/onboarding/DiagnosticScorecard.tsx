@@ -11,7 +11,7 @@ import {
     RefreshCwIcon,
     ZapIcon
 } from 'lucide-react';
-import { DiagnosticEvaluationSchema } from '../../../../prepmirrors-backend/src/schemas/feedbackSchema';
+import { DiagnosticEvaluationSchema } from '../../lib/types/diagnostic.types';
 
 interface DiagnosticScorecardProps {
     scoreData: DiagnosticEvaluationSchema;

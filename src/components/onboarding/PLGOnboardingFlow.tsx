@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ZoomDiagnosticInterface, { IntakeData } from './ZoomDiagnosticInterface';
 import DiagnosticScorecard from './DiagnosticScorecard';
 import AnchoredPaywallModal from './AnchoredPaywallModal';
-import { DiagnosticEvaluationSchema } from '../../../../prepmirrors-backend/src/schemas/feedbackSchema';
+import { DiagnosticEvaluationSchema } from '../../lib/types/diagnostic.types';
+import { diagnosticApi } from '../../lib/api/diagnostic';
 import { useNavigate } from 'react-router-dom';
 
 export const PLGOnboardingFlow: React.FC = () => {
@@ -26,6 +27,11 @@ export const PLGOnboardingFlow: React.FC = () => {
 
     const [isEvaluating, setIsEvaluating] = useState(false);
     const [evaluationResult, setEvaluationResult] = useState<DiagnosticEvaluationSchema | null>(null);
+    const [evaluationError, setEvaluationError] = useState<string | null>(null);
+    // Kept so a failed evaluation can be retried without making the candidate
+    // record their answer again.
+    const [lastTranscript, setLastTranscript] = useState('');
+    const [lastQuestion, setLastQuestion] = useState('');
     const [userAuthEmail, setUserAuthEmail] = useState('');
 
     // Tier 1 localStorage check for returning visitors
@@ -45,79 +51,42 @@ export const PLGOnboardingFlow: React.FC = () => {
         setIntake(data);
     };
 
-    const handleFinishDiagnostic = (userTranscript: string) => {
+    const handleFinishDiagnostic = async (userTranscript: string, question?: string) => {
         setIsEvaluating(true);
+        setEvaluationError(null);
+        setLastTranscript(userTranscript);
+        setLastQuestion(question ?? '');
 
-        // Mock diagnostic engine evaluation calculation based on timeline & transcript
-        setTimeout(() => {
-            const calculatedScore = 64; // Benchmark baseline
-            const targetDays = intake.timelineDays || 7;
-            const hoursNeeded = Math.round((85 - calculatedScore) * 0.15 * 10) / 10;
-            const sessionsPerDay = targetDays <= 7 ? 2 : 1;
-            const minsPerDay = Math.round((hoursNeeded * 60) / targetDays);
+        const result = await diagnosticApi.evaluate({
+            question: question || 'Tell me about a recent project you are proud of.',
+            answer: userTranscript,
+            role: intake.role,
+            company: intake.company || undefined,
+            timelineDays: intake.timelineDays || 7,
+        });
 
-            const readyDate = new Date();
-            readyDate.setDate(readyDate.getDate() + targetDays);
-            const formattedReadyDate = readyDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        setIsEvaluating(false);
 
-            const mockResult: DiagnosticEvaluationSchema = {
-                readiness_score: calculatedScore,
-                benchmark_status: 'Needs Focused Prep',
-                pillar_scores: {
-                    star_structure: 60,
-                    conciseness_clarity: 70,
-                    domain_keywords: 55,
-                    delivery_confidence: 75,
-                    executive_impact: 50
-                },
-                star_analysis: {
-                    has_situation: true,
-                    has_task: true,
-                    has_action: true,
-                    has_result: false,
-                    missing_elements: ['Quantified Result / Impact Metrics']
-                },
-                red_flags: [
-                    {
-                        type: 'passive_pronoun',
-                        issue: 'Overuse of "We" instead of personal ownership "I"',
-                        recommendation: 'Highlight your specific contribution rather than hiding behind team actions.'
-                    },
-                    {
-                        type: 'missing_metrics',
-                        issue: 'No quantified business impact',
-                        recommendation: 'Include specific numbers (e.g. % latency reduction, $ saved, users reached).'
-                    }
-                ],
-                quote_rewrites: [
-                    {
-                        user_said: userTranscript || "We worked on reducing API latency because customers complained.",
-                        recruiter_rewrite: "I profiled the GraphQL endpoints using Datadog, identified 3 unindexed database queries, and reduced P99 latency by 42%.",
-                        rationale: "Replaces passive team description with proactive technical ownership and measurable impact."
-                    }
-                ],
-                timeline_pace: {
-                    target_timeline_days: targetDays,
-                    estimated_practice_hours: hoursNeeded,
-                    sessions_per_day: sessionsPerDay,
-                    minutes_per_day: minsPerDay,
-                    target_ready_date: formattedReadyDate,
-                    pace_headline: `Reach 85%+ Readiness in ${targetDays} Days`
-                },
-                strengths: ['Clear articulate tone', 'Good technical problem context'],
-                quick_wins: ['Add quantified results to STAR answers', 'Use "I" instead of "We"'],
-                final_verdict: 'Strong foundational technical knowledge; needs structured action & quantified metrics to pass FAANG hiring bar.'
-            };
+        if (!result.success) {
+            // Stay on the intake step and surface a retry rather than showing a
+            // scorecard we didn't actually earn.
+            setEvaluationError(result.error);
+            return;
+        }
 
-            setEvaluationResult(mockResult);
-            setIsEvaluating(false);
-            setCurrentStep('SCORECARD');
+        setEvaluationResult(result.evaluation);
+        setCurrentStep('SCORECARD');
 
-            // Save to localStorage for Tier 1 Credit Saver
-            localStorage.setItem('prepmirrors_onboarding_completed', 'true');
-            localStorage.setItem('prepmirrors_last_score', calculatedScore.toString());
-            localStorage.setItem('prepmirrors_target_role', intake.role);
-        }, 1200);
+        // Tier 1 Credit Saver: remember this visitor so a return trip can skip
+        // straight to their last result.
+        localStorage.setItem('prepmirrors_onboarding_completed', 'true');
+        localStorage.setItem('prepmirrors_last_score', String(result.evaluation.readiness_score));
+        localStorage.setItem('prepmirrors_target_role', intake.role);
+    };
+
+    const retryEvaluation = () => {
+        if (!lastTranscript) return;
+        handleFinishDiagnostic(lastTranscript, lastQuestion || undefined);
     };
 
     const handleAuthenticate = (email: string) => {
@@ -179,11 +148,32 @@ export const PLGOnboardingFlow: React.FC = () => {
     return (
         <div className="w-full space-y-8">
             {currentStep === 'ZOOM_INTAKE' && (
-                <ZoomDiagnosticInterface
-                    onCompleteIntake={handleIntakeComplete}
-                    onFinishDiagnosticSession={handleFinishDiagnostic}
-                    isProcessingScore={isEvaluating}
-                />
+                <>
+                    <ZoomDiagnosticInterface
+                        onCompleteIntake={handleIntakeComplete}
+                        onFinishDiagnosticSession={handleFinishDiagnostic}
+                        isProcessingScore={isEvaluating}
+                    />
+
+                    {/* Scoring can fail (model timeout, rate limit). The answer
+                        is held in state so retrying doesn't cost them a re-record. */}
+                    {evaluationError && !isEvaluating && (
+                        <div
+                            role="alert"
+                            className="max-w-xl mx-auto rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-center space-y-3"
+                        >
+                            <p className="text-sm text-red-200">{evaluationError}</p>
+                            {lastTranscript && (
+                                <button
+                                    onClick={retryEvaluation}
+                                    className="px-5 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors"
+                                >
+                                    Score my answer again
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </>
             )}
 
             {currentStep === 'SCORECARD' && evaluationResult && (

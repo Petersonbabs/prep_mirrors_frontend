@@ -22,7 +22,7 @@ import Faqs from '../components/ui/Homepage/Faqs';
 import { Helmet } from 'react-helmet-async';
 import Hero from '../components/home/Hero';
 import QuickInterviewModal from '../components/quick-interview/QuickInterviewModal';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 interface HomePageProps {
   onGetStarted: () => void;
   onSignIn: () => void;
@@ -206,13 +206,16 @@ function ProblemSolutionSection({
           </div>
         </div>
         <div className="text-center mt-10">
-          <button
-            onClick={onGetStarted}
+          {/* Lands straight in the diagnostic: this sits directly after the
+              "without PrepMirrors" comparison, which is the worst possible
+              moment to ask someone to create an account first. */}
+          <Link
+            to="/practice"
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-2xl transition-colors shadow-soft text-base">
 
             <span>Start Preparing Now</span>
             <ArrowRightIcon className="w-4 h-4" />
-          </button>
+          </Link>
           <p className="text-sm text-neutral-400 dark:text-neutral-500 mt-3">
             Free to start · No credit card required
           </p>

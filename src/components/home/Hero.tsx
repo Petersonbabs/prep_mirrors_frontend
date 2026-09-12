@@ -66,21 +66,32 @@ const Hero = ({ setShowQuickInterview }: HeroProps) => {
                                 </div>
                             </div>
                         </UnderDevelopmentComponent>
+                        {/* The diagnostic leads. Signing up is the secondary
+                            path: sending a cold visitor to /auth first puts a
+                            wall in front of the only thing that shows them what
+                            this product does. */}
                         <div className="flex flex-col sm:flex-row gap-3 mb-8">
                             <Link
-                                to="/auth"
+                                to="/practice"
                                 className="flex items-center justify-center gap-2 px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-2xl transition-all duration-200 shadow-soft hover:shadow-glow text-base">
+                                <Video className="w-4 h-4" />
+                                <span>Take the 1-Minute Interview</span>
+                            </Link>
+                            <Link
+                                to="/auth"
+                                className="flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-semibold rounded-2xl border border-neutral-200 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-200 text-base">
                                 <span>Start Free Practice</span>
                                 <ArrowRightIcon className="w-4 h-4" />
                             </Link>
-                            <button
-                                onClick={() => setShowQuickInterview(true)}
-                                className="flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-semibold rounded-2xl border border-neutral-200 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-200 text-base">
-
-                                <Video className="w-4 h-4 text-primary-500" />
-                                <span>Try 1-Minute Interview</span>
-                            </button>
                         </div>
+                        {/* Keeps the older single-question modal reachable as a
+                            lighter-weight fallback while /practice proves out. */}
+                        <button
+                            onClick={() => setShowQuickInterview(true)}
+                            className="mb-8 -mt-4 text-sm text-neutral-500 dark:text-neutral-400 hover:text-primary-500 dark:hover:text-primary-400 underline underline-offset-4 transition-colors"
+                        >
+                            or try the 60-second version
+                        </button>
                         <div className="flex flex-wrap gap-4 text-sm text-neutral-500 dark:text-neutral-400">
                             <div className="flex items-center gap-1.5">
                                 <CheckIcon className="w-4 h-4 text-secondary-500" />
